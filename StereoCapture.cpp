@@ -12,9 +12,7 @@ bool StereoCapture::init_camera(int fps)
          init_params.camera_fps = 60;                               // Set fps at 60
     */
 
-    ERROR_CODE err = zed.open();
-
-    if(err != ERROR_CODE::SUCCESS)
+    if(zed.open() != ls::ERROR_CODE::SUCCESS)
     {
         std::cout<< err << "exit program " << std::endl;
         camera_on = false;
@@ -24,7 +22,7 @@ bool StereoCapture::init_camera(int fps)
     return camera_on;
 }
 
-int StereoCapture::capture_images(int num, std::string folder_path)
+int StereoCapture::capture_images(int num, const std::string& folder_path)
 {
     int saved = 0;
     if(!camera_on || num <= 0)
@@ -41,7 +39,8 @@ int StereoCapture::capture_images(int num, std::string folder_path)
 
             //1- /path/timestamp.png then we write!
             std::string path = folder_path + "/" + std::to_string(timestamp.getMilliseconds()); //to_string: converts to string!             
-            if(image_left.write(path+".png") == sl::ERROR_CODE::SUCCESS)
+            path += ".png";
+            if(image_left.write(path) == sl::ERROR_CODE::SUCCESS)
             {
                 saved++;
             }

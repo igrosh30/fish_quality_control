@@ -3,7 +3,7 @@
 #include <string>
 #include <iostream>
 
-#include <sl/Camera.hpp>
+#include <sl/Camera.hpp>//when compilling- specify the path with -I flag! 
 
 /*
 fotos s/distorções! 
@@ -25,7 +25,7 @@ public:
     
     bool init_camera(int fps);//HOW COULD RESOLUTION CHANGE?!
     bool close_camera();
-    int capture_images(int num, std::string folder_path);
+    int capture_images(int num, const std::string& folder_path);
 };
 
 
