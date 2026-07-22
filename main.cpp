@@ -13,7 +13,7 @@ int main(int argc, char **argv)// **argv is the same as *argv[] !
         std::cout<<"argv[2]"<<argv[2]<<std::endl;
 
         StereoCapture capture;  
-        std::string path = argc <= 2 ? argv[1] : default_path;
+        std::string path = argc <= 3 ? argv[1] : default_path;
         int num_img = argc >= 3 ? std::stoi(argv[2]) : default_captures;
         
         if(capture.init_camera(num_img))
