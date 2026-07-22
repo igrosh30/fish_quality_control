@@ -25,8 +25,8 @@ bool StereoCapture::init_camera(int fps)
 int StereoCapture::capture_images(int num, const std::string& folder_path)
 {
     int saved = 0;
-    if(!camera_on || num <= 0)
-        return -1;
+    if(!camera_on || num <= 0)  return -1;    
+    //verify if folder_path exists ?
     
     //let's grab a image!
     for(int i = 0; i<num; i++)
@@ -40,6 +40,7 @@ int StereoCapture::capture_images(int num, const std::string& folder_path)
             //1- /path/timestamp.png then we write!
             std::string path = folder_path + "/" + std::to_string(timestamp.getMilliseconds()); //to_string: converts to string!             
             path += ".png";
+            std::cout<<"Stored path: "<<path<<std::endl;
             if(image_left.write(sl::String(path.c_str())) == sl::ERROR_CODE::SUCCESS)
             {
                 saved++;
