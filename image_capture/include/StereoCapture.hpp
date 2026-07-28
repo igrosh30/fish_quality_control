@@ -27,7 +27,3 @@ public:
     bool close_camera();
     int capture_images(int num, const std::string& folder_path);
 };
-
-
-
-//1- conne

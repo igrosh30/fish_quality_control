@@ -2,7 +2,7 @@
 
 
 const std::string default_path = "/home/ciimar/fish_quality_control/captures";
-const int default_captures = 30;
+const int default_captures = 30;//or fps?!
 
 int main(int argc, char **argv)// **argv is the same as *argv[] ! 
 {
