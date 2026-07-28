@@ -61,7 +61,7 @@ int StereoCapture::capture_images(int num, const std::string& folder_path)
 
     return saved;
 }
-
+/*
 inline cv::Mat slMat2cvMat(sl::Mat& input) {
     // Mapping between MAT_TYPE and CV_TYPE
     int cv_type = -1;
@@ -96,7 +96,7 @@ inline cv::Mat slMat2cvMat(sl::Mat& input) {
 
     return cv::Mat(input.getHeight(), input.getWidth(), cv_type, input.getPtr<sl::uchar1>(sl::MEM::CPU));
 }
-
+*/
 bool StereoCapture::close_camera()
 {
     zed.close();

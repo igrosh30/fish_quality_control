@@ -1,5 +1,4 @@
-#include "StereoCapture.h"
-
+#include "StereoCapture.hpp"
 
 const std::string default_path = "/home/ciimar/fish_quality_control/captures";
 const int default_captures = 30;//or fps?!
