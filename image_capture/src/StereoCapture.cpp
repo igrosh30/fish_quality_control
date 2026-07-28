@@ -6,13 +6,17 @@ bool StereoCapture::init_camera(int fps)
     
     /*before connecting the zed object we can define the parameters:
      // Set configuration parameters
-         InitParameters init_params;
-         init_params.camera_resolution = RESOLUTION::HD720;         // Use HD720 video mode for USB cameras
-         init_params.camera_resolution = RESOLUTION::HD1200;        // Use HD1200 video mode for GMSL cameras
-         init_params.camera_fps = 60;                               // Set fps at 60
+        InitParameters init_params;
+        init_params.camera_resolution = RESOLUTION::HD720;         // Use HD720 video mode for USB cameras
+        init_params.camera_resolution = RESOLUTION::HD1200;        // Use HD1200 video mode for GMSL cameras
+        init_params.camera_fps = 60;                               // Set fps at 60
+        Resolucao: 2208 x 1242 
     */
+    
+    sl::InitParameters init_params;
+    init_params.camera_resolution = sl::RESOLUTION::HD2K;
 
-    if(zed.open() != sl::ERROR_CODE::SUCCESS)
+    if(zed.open(init_params) != sl::ERROR_CODE::SUCCESS)
     {
         std::cout << "Error opening camerra...exit program " << std::endl;
         camera_on = false;
@@ -46,8 +50,8 @@ int StereoCapture::capture_images(int num, const std::string& folder_path)
             std::string path_r = folder_path + "/" + std::to_string(timestamp_r.getMilliseconds()); //to_string: converts to string!             
             path_l += "_lef.png";
             path_r += "_right.png";
-            std::cout<<"Stored path: "<<path<<std::endl;
-            if(image_left.write(sl::String(path_left.c_str())) == sl::ERROR_CODE::SUCCESS && image_right.write(sl::String(path_right.c_str())) == sl::ERROR_CODE::SUCCESS)
+            //std::cout<<"Stored path: "<<path<<std::endl;
+            if(image_left.write(sl::String(path_l.c_str())) == sl::ERROR_CODE::SUCCESS && image_right.write(sl::String(path_r.c_str())) == sl::ERROR_CODE::SUCCESS)
             {
                 saved++;
             }
