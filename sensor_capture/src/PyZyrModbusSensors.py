@@ -1,6 +1,7 @@
 import copy
 import ipaddress
 import time
+import numpy as np
 
 from pymodbus import framer
 from pymodbus.client import ModbusTcpClient, ModbusSerialClient

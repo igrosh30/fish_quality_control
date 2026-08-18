@@ -21,7 +21,7 @@ const string sensor_path_exe  = "/home/ciimar/fish_quality_control/sensor_captur
 const string capture_path_exe = "/home/ciimar/fish_quality_control/image_capture/image_capture"; // where is stored the exe?
 
 /*
-shh:  ssh ciimar@ciimar.local   
+shh:  ssh ciimar@ciimar.local 192.168.220.114
 
 important documentation calls:
     man 2 execve
