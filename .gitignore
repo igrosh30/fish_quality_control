@@ -1,0 +1,18 @@
+# data (runtime output)
+data/
+
+# build outputs
+image_cap
+image_capture/image_capture
+image_capture/src/gen_matrix
+supervisor/supervisor
+
+# python
+env/
+__pycache__/
+
+# config (check this — remove line if you want it versioned)
+image_capture/src/config/
+
+# macOS
+.DS_Store
