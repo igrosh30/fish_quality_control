@@ -13,8 +13,8 @@ using namespace std;
 
 //--------TIMEOUT VAR----------------------
 using clk = std::chrono::steady_clock;
-const uint32_t cam_timeout = 10000;    //60m -  3600000s
-const uint32_t sens_timeout = 20000;    //30m
+const uint32_t cam_timeout = 60000;    //60m -  3600000s
+const uint32_t sens_timeout = 35000;    //30m
 
 
 const string sensor_path_exe  = "/home/ciimar/fish_quality_control/sensor_capture/src";
