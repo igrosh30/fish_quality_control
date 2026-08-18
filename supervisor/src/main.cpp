@@ -8,14 +8,14 @@
 #include <chrono>
 #include <algorithm>
 #include <string>
+#include <ctime>
 
 using namespace std;
 
 //--------TIMEOUT VAR----------------------
 using clk = std::chrono::steady_clock;
-const uint32_t cam_timeout = 60000;    //60m -  3600000s
-const uint32_t sens_timeout = 35000;    //30m
-
+const uint32_t cam_timeout = 3600000;     //60m -  3600000s
+const uint32_t sens_timeout = 1980000;    //33m -  
 
 const string sensor_path_exe  = "/home/ciimar/fish_quality_control/sensor_capture/src";
 const string capture_path_exe = "/home/ciimar/fish_quality_control/image_capture/image_capture"; // where is stored the exe?
@@ -44,8 +44,8 @@ pid_t camera_fork()
     }
     char* argv_cam[] = { 
         (char*)"image_capture",//binary to run
-        (char*) "/home/ciimar/fish_quality_control/data/fotos_teste_v1",
-        (char*) "3",
+        (char*) "/home/ciimar/fish_quality_control/data/fotos_teste_v2",
+        (char*) "1",
         nullptr
     };
     execv("/home/ciimar/fish_quality_control/image_capture/image_capture", argv_cam);
@@ -89,16 +89,16 @@ int main()
     auto now = clk::now();
     auto next_cam = now + std::chrono::milliseconds(cam_timeout);
     auto next_sens = now + std::chrono::milliseconds(sens_timeout);
-
+    
+    
     //loop:
     while(1)
     {
+        //skip photo:
+        std::time_t t = std::time(nullptr);
+        std::tm* lt = std::localtime(&t);
+        int hour = lt ->tm_hour;
 
-        if(counting_sensor > 10 )
-        {
-            cout<< "called 10 times counting sensor... passed ap. 5 minutes of work"<<endl;
-            return 1;
-        }
         //computations:
         now = clk::now();                                   
         auto soonest   = std::min(next_cam, next_sens);     
@@ -111,15 +111,18 @@ int main()
         if(poll_res< 0 ) continue;
         else if(poll_res == 0) // when the timeout_ms happens! 
         {
-            //time expired... perform time operations to see what fork to call! 
-            //Need to check which timeout occured!
+            bool is_dark = (hour < 8 || hour >= 19) ? true:false;
+
             now = clk::now();
             pid_t child_id;
             if(next_cam <= now) // now(this timestap is greater than next_cam, means next_cam fired!)
             {
                 cout << "Calling Camera Fork()!" << endl;
+                cout << "Hour: " <<hour << endl;
+
                 next_cam += std::chrono::milliseconds(cam_timeout); 
-                child_id = camera_fork();
+                if(!is_dark)
+                    child_id = camera_fork();
             }
             if (next_sens <= now) 
             {
