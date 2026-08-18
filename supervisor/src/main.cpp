@@ -42,7 +42,12 @@ pid_t camera_fork()
         //parent process! 
         return p_id;
     }
-    char* argv_cam[] = { (char*)"image_capture", nullptr };
+    char* argv_cam[] = { 
+        (char*)"image_capture",//binary to run
+        (char*) "/home/ciimar/fish_quality_control/data/fotos_teste_v1",
+        (char*) "3",
+        nullptr
+    };
     execv("/home/ciimar/fish_quality_control/image_capture/image_capture", argv_cam);
     // only reached if execv FAILED:
     perror("execv camera");
