@@ -104,7 +104,7 @@ int main()
 
         int poll_res = poll(nullptr,0,timeout_ms);
         if(poll_res< 0 ) continue;
-        else if(poll_res == 0)
+        else if(poll_res == 0) // when the timeout_ms happens! 
         {
             //time expired... perform time operations to see what fork to call! 
             //Need to check which timeout occured!
@@ -112,14 +112,14 @@ int main()
             pid_t child_id;
             if(next_cam <= now) // now(this timestap is greater than next_cam, means next_cam fired!)
             {
-                cout << "Camera process fired!" << endl;
+                cout << "Calling Camera Fork()!" << endl;
                 next_cam += std::chrono::milliseconds(cam_timeout); 
                 child_id = camera_fork();
             }
             if (next_sens <= now) 
             {
                 next_sens += std::chrono::milliseconds(sens_timeout);
-                child_id = sensor_fork(counting_sensor);
+                sensor_fork(counting_sensor);
                 cout << "sensor count: "<< counting_sensor << endl;
             }
             

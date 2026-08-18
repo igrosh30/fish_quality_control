@@ -19,7 +19,7 @@ int main(int argc, char **argv)// **argv is the same as *argv[] !
         if(capture.init_camera(num_img))
         {
                 int tot_captures = capture.capture_images(num_img, path);
-                //std::cout << tot_captures << " images where stored successfully" << std::endl;
+                std::cout << tot_captures << " images where stored successfully!" << std::endl;
                 capture.close_camera();
                 return 0;
         }
