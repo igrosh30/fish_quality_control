@@ -13,8 +13,8 @@ using namespace std;
 
 //--------TIMEOUT VAR----------------------
 using clk = std::chrono::steady_clock;
-const uint32_t cam_timeout = 3600000;    //60m
-const uint32_t sens_timeout = 1800000;    //30m
+const uint32_t cam_timeout = 10000;    //60m -  3600000s
+const uint32_t sens_timeout = 20000;    //30m
 
 
 const string sensor_path_exe  = "/home/ciimar/fish_quality_control/sensor_capture/src";
@@ -49,8 +49,9 @@ pid_t camera_fork()
     _exit(127);
 }
 
-int sensor_fork()
+int sensor_fork(int &counting_sensor)
 {
+    /*
     pid_t p_id = fork();
 
     if(p_id)
@@ -64,10 +65,14 @@ int sensor_fork()
     // only reached if execv FAILED:
     perror("execv sensor");
     _exit(127);
-
+    */
+   counting_sensor += 1;
+   return counting_sensor;
 }
+
 int main()
 {
+    int counting_sensor = 0;
     /*
     struct pollfd poll_fds[1];
     poll_fds[0].fd = 0;
@@ -83,11 +88,14 @@ int main()
     //loop:
     while(1)
     {
+        
         //computations:
         now = clk::now();                                   
         auto soonest   = std::min(next_cam, next_sens);     
         auto remaining = chrono::duration_cast<chrono::milliseconds>(soonest - now).count();
         int  timeout_ms = (remaining < 0) ? 0 : (int)remaining;   
+
+        cout << "timeout_ms:"<< timeout_ms << endl;
 
         int poll_res = poll(nullptr,0,timeout_ms);
         if(poll_res< 0 ) continue;
@@ -99,13 +107,15 @@ int main()
             pid_t child_id;
             if(next_cam <= now) // now(this timestap is greater than next_cam, means next_cam fired!)
             {
+                cout << "Camera process fired!" << endl;
                 next_cam += std::chrono::milliseconds(cam_timeout); 
                 child_id = camera_fork();
             }
             if (next_sens <= now) 
             {
                 next_sens += std::chrono::milliseconds(sens_timeout);
-                child_id = sensor_fork();
+                child_id = sensor_fork(counting_sensor);
+                cout << "sensor count: "<< counting_sensor << endl;
             }
             
             int st; while (waitpid(-1, &st, WNOHANG) > 0) { }
