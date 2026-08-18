@@ -32,24 +32,27 @@ int StereoCapture::capture_images(int num, const std::string& folder_path)
     if(!camera_on || num <= 0)  return -1;    
     //verify if folder_path exists ?
     
-    //let's grab a image!
+    //let's grab a image! - PROBLEM: if we want 2 photos but the loop runs fast that in less than a second it takes the photo- 1st will be overwritten
     for(int i = 0; i<num; i++)
     {
         if(zed.grab() == sl::ERROR_CODE::SUCCESS)
         {
             //zed.retrieveImage(image_right,VIEW::RIGHT);
-            zed.retrieveImage(image_left,sl::VIEW::LEFT);//left image only
+            zed.retrieveImage(image_left,sl::VIEW::LEFT);
             zed.retrieveImage(image_right,sl::VIEW::RIGHT);
 
+            // build YYYYMMDD-HHMMSS timestamp
+            std::time_t t = std::time(nullptr);
+            std::ostringstream oss;
+            oss << std::put_time(std::gmtime(&t), "%Y%m%d-%H%M%S");
+            std::string stamp = oss.str();                 
 
-            auto timestamp_l = zed.getTimestamp(sl::TIME_REFERENCE::IMAGE);
-            auto timestamp_r = zed.getTimestamp(sl::TIME_REFERENCE::IMAGE);
+            //auto timestamp_l = zed.getTimestamp(sl::TIME_REFERENCE::IMAGE); std::to_string(timestamp_l.getMilliseconds());
+            //auto timestamp_r = zed.getTimestamp(sl::TIME_REFERENCE::IMAGE);
 
-            //1- /path/timestamp.png then we write!
-            std::string path_l = folder_path + "/" + std::to_string(timestamp_l.getMilliseconds()); //to_string: converts to string!             
-            std::string path_r = folder_path + "/" + std::to_string(timestamp_r.getMilliseconds()); //to_string: converts to string!             
-            path_l += "_lef.png";
-            path_r += "_right.png";
+            std::string path_l = folder_path + "/" + stamp + "_lef.png";            
+            std::string path_r = folder_path + "/" + stamp + "_right.png";
+            
             //std::cout<<"Stored path: "<<path<<std::endl;
             if(image_left.write(sl::String(path_l.c_str())) == sl::ERROR_CODE::SUCCESS && image_right.write(sl::String(path_r.c_str())) == sl::ERROR_CODE::SUCCESS)
             {

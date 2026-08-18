@@ -1,6 +1,6 @@
 #include "StereoCapture.hpp"
 
-const std::string default_path = "/home/ciimar/fish_quality_control/captures";
+const std::string default_path = "/home/ciimar/fish_quality_control/data/fotos_peixes";
 const int default_captures = 5;
 
 int main(int argc, char **argv)// **argv is the same as *argv[] ! 
