@@ -93,7 +93,12 @@ int main()
     //loop:
     while(1)
     {
-        
+
+        if(counting_sensor > 10 )
+        {
+            cout<< "called 10 times counting sensor... passed ap. 5 minutes of work"<<endl;
+            return 1;
+        }
         //computations:
         now = clk::now();                                   
         auto soonest   = std::min(next_cam, next_sens);     
