@@ -15,7 +15,7 @@ using namespace std;
 //--------TIMEOUT VAR----------------------
 using clk = std::chrono::steady_clock;
 const uint32_t cam_timeout  = 3600000;     //60m -  3600000s
-const uint32_t sens_timeout = 30000;    //33m -  
+const uint32_t sens_timeout = 1890000;    //33m -  
 
 const string sensor_path_exe  = "/home/ciimar/fish_quality_control/sensor_capture/src";
 const string capture_path_exe = "/home/ciimar/fish_quality_control/image_capture/image_capture"; // where is stored the exe?
@@ -72,7 +72,7 @@ pid_t sensor_fork()
     }
     char* argv_sen[] =
     {
-        (char*)"/home/ciimar/fish_quality_control/env/bin/python3",   // full path as argv[0]
+        (char*)"/home/ciimar/fish_quality_control/env/bin/python3",   
         (char*)"/home/ciimar/fish_quality_control/sensor_capture/src/I4FSensReadRawData.py",
         (char*)"-c",
         (char*)"/home/ciimar/fish_quality_control/sensor_capture/config/sensors_config.json",
