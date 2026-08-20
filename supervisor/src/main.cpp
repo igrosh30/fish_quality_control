@@ -60,7 +60,7 @@ pid_t camera_fork()
     _exit(127);
 }
 
-pid_t sensor_fork(int &counting_sensor)
+pid_t sensor_fork()
 {
     
     pid_t p_id = fork();
@@ -70,8 +70,9 @@ pid_t sensor_fork(int &counting_sensor)
         //parent process received p_id of the child so it's != 0 
         return p_id;
     }
-    char* argv_sen[] = {
-        (char*)"python3",
+    char* argv_sen[] =
+    {
+        (char*)"/home/ciimar/fish_quality_control/env/bin/python3",   // full path as argv[0]
         (char*)"/home/ciimar/fish_quality_control/sensor_capture/src/I4FSensReadRawData.py",
         (char*)"-c",
         (char*)"/home/ciimar/fish_quality_control/sensor_capture/config/sensors_config.json",
@@ -88,7 +89,6 @@ pid_t sensor_fork(int &counting_sensor)
 
 int main()
 {
-    int counting_sensor = 0;
     /*
     struct pollfd poll_fds[1];
     poll_fds[0].fd = 0;
@@ -116,8 +116,6 @@ int main()
         auto remaining = chrono::duration_cast<chrono::milliseconds>(soonest - now).count();
         int  timeout_ms = (remaining < 0) ? 0 : (int)remaining;   
 
-        cout << "timeout_ms:"<< timeout_ms << endl;
-
         int poll_res = poll(nullptr,0,timeout_ms);
         if(poll_res< 0 ) continue;
         else if(poll_res == 0) // when the timeout_ms happens! 
@@ -138,8 +136,9 @@ int main()
             if (next_sens <= now) 
             {
                 next_sens += std::chrono::milliseconds(sens_timeout);
-                sensor_fork(counting_sensor);
-                cout << "sensor count: "<< counting_sensor << endl;
+                cout << "Calling Sensor Fork()!" << endl;
+                sensor_fork();
+                
             }
             
             int st; while (waitpid(-1, &st, WNOHANG) > 0) { }
