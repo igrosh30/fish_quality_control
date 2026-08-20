@@ -73,9 +73,9 @@ pid_t sensor_fork(int &counting_sensor)
     char* argv_sen[] = {
         (char*)"python3",
         (char*)"/home/ciimar/fish_quality_control/sensor_capture/src/I4FSensReadRawData.py",
-        (char*)"c-",
+        (char*)"-c",
         (char*)"sensor_capture/config/sensors_config.json",
-        (char*)"o-",
+        (char*)"-o",
         (char*)"data/sensors",
         nullptr
     };
@@ -84,6 +84,7 @@ pid_t sensor_fork(int &counting_sensor)
     perror("execv sensor");
     _exit(127);
 }
+
 
 int main()
 {
