@@ -35,7 +35,8 @@ int StereoCapture::capture_images(int num, const std::string& folder_path)
     //verify if folder_path exists -> if not create!
     if(!fs::is_directory(folder_path))
     {
-        std::cout<<"File path doesn't exist...";
+        std::cout<<"File path doesn't exist...\nCreating the new folder";//need to create only will be created once! 
+        fs::create_directories(folder_path);
         return 0;
     }
     
