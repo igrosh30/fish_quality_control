@@ -1,5 +1,7 @@
 #include "StereoCapture.hpp"
 
+namespace fs = std::filesystem;
+
 bool StereoCapture::init_camera(int fps)
 {
     //connect the object to the hardware
@@ -30,7 +32,12 @@ int StereoCapture::capture_images(int num, const std::string& folder_path)
 {
     int saved = 0;
     if(!camera_on || num <= 0)  return -1;    
-    //verify if folder_path exists ?
+    //verify if folder_path exists -> if not create!
+    if(!fs::is_directory(folder_path))
+    {
+        std::cout<<"File path doesn't exist...";
+        return 0;
+    }
     
     //let's grab a image! - PROBLEM: if we want 2 photos but the loop runs fast that in less than a second it takes the photo- 1st will be overwritten
     for(int i = 0; i<num; i++)
@@ -58,8 +65,8 @@ int StereoCapture::capture_images(int num, const std::string& folder_path)
             {
                 saved++;
                 std::cout<<"images stored at:"<<std::endl;
-                std::cout<<path_l<<std::endl;
-                std::cout<<path_r<<std::endl;
+                std::cout<<"LEFT:"<<path_l<<std::endl;
+                std::cout<<"RIGHT:"<<path_r<<std::endl;
             }
 
         }
