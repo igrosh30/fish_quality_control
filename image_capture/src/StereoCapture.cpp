@@ -57,6 +57,9 @@ int StereoCapture::capture_images(int num, const std::string& folder_path)
             if(image_left.write(sl::String(path_l.c_str())) == sl::ERROR_CODE::SUCCESS && image_right.write(sl::String(path_r.c_str())) == sl::ERROR_CODE::SUCCESS)
             {
                 saved++;
+                std::cout<<"images stored at:"<<endl;
+                std::cout<<path_l<<endl;
+                std::cout<<path_r<<endl;
             }
 
         }

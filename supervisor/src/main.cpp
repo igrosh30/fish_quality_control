@@ -94,7 +94,7 @@ int main()
     //loop:
     while(1)
     {
-        //skip photo:
+        //skip photo - get hour:
         std::time_t t = std::time(nullptr);
         std::tm* lt = std::localtime(&t);
         int hour = lt ->tm_hour;
