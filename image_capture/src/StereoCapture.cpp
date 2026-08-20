@@ -37,7 +37,7 @@ int StereoCapture::capture_images(int num, const std::string& folder_path)
     {
         std::cout<<"File path doesn't exist...\nCreating the new folder";//need to create only will be created once! 
         fs::create_directories(folder_path);
-        return 0;
+        //return 0; do I return?!
     }
     
     //let's grab a image! - PROBLEM: if we want 2 photos but the loop runs fast that in less than a second it takes the photo- 1st will be overwritten

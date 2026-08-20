@@ -14,8 +14,8 @@ using namespace std;
 
 //--------TIMEOUT VAR----------------------
 using clk = std::chrono::steady_clock;
-const uint32_t cam_timeout  = 30000;     //60m -  3600000s
-const uint32_t sens_timeout = 1980000;    //33m -  
+const uint32_t cam_timeout  = 3600000;     //60m -  3600000s
+const uint32_t sens_timeout = 30000;    //33m -  
 
 const string sensor_path_exe  = "/home/ciimar/fish_quality_control/sensor_capture/src";
 const string capture_path_exe = "/home/ciimar/fish_quality_control/image_capture/image_capture"; // where is stored the exe?
@@ -32,6 +32,12 @@ important documentation calls:
         numpy==2.5.1
         pymodbus==3.14.0
         pyserial==3.5
+
+Overwrite at the jetson:
+git fetch origin
+git reset --hard origin/main
+
+//Amonia turn off!
 */
 
 pid_t camera_fork()
@@ -54,25 +60,29 @@ pid_t camera_fork()
     _exit(127);
 }
 
-int sensor_fork(int &counting_sensor)
+pid_t sensor_fork(int &counting_sensor)
 {
-    /*
+    
     pid_t p_id = fork();
 
     if(p_id)
     {
+        //parent process received p_id of the child so it's != 0 
         return p_id;
     }
-    char* argv_sen[] = { (char*)"python3",
-                     (char*)"/home/ciimar/fish_quality_control/sensor_capture/src/I4FSensReadRawData.py",
-                     nullptr };
-    execv("/usr/bin/python3", argv_sen);
+    char* argv_sen[] = {
+        (char*)"python3",
+        (char*)"/home/ciimar/fish_quality_control/sensor_capture/src/I4FSensReadRawData.py",
+        (char*)"c-",
+        (char*)"sensor_capture/config/sensors_config.json",
+        (char*)"o-",
+        (char*)"data/sensors",
+        nullptr
+    };
+    execv("/home/ciimar/fish_quality_control/env/bin/python3", argv_sen);
     // only reached if execv FAILED:
     perror("execv sensor");
     _exit(127);
-    */
-   counting_sensor += 1;
-   return counting_sensor;
 }
 
 int main()
