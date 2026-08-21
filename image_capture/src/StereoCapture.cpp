@@ -52,7 +52,7 @@ int StereoCapture::capture_images(int num, const std::string& folder_path)
             // build YYYYMMDD-HHMMSS timestamp
             std::time_t t = std::time(nullptr);
             std::ostringstream oss;
-            oss << std::put_time(std::gmtime(&t), "%Y%m%d-%H%M%S");
+            oss << std::put_time(std::localtime(&t), "%Y%m%d-%H%M%S");
             std::string stamp = oss.str();                 
 
             //auto timestamp_l = zed.getTimestamp(sl::TIME_REFERENCE::IMAGE); std::to_string(timestamp_l.getMilliseconds());
