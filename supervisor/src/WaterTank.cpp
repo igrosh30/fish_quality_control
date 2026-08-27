@@ -82,7 +82,7 @@ void WaterTank::update_state()//needs access to sensors!
                 }
                 else
                 {
-                    set_actuators(actuators[0],1); //open valve
+                    set_actuator(actuators[0],1); //open valve
                     current_tank_state = tank_state::DRAIN;
                 }
             }
@@ -90,7 +90,7 @@ void WaterTank::update_state()//needs access to sensors!
         
         case tank_state::DRAIN:
             
-            if(sensors[0].val== 0 && snesors[1] == 0)
+            if(sensors[0].val== 0 && sensors[1].val == 0)
             {                                               ////I'm passing many arguments! need to pass now the actuators also! - CREATE A TANK class! we put there the GPIO pins def in main only opdate()
                 set_actuator(actuators[0],0);
                 set_actuator(actuators[1],1); //pump water!
