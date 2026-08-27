@@ -27,7 +27,10 @@ Overwrite at the jetson:
 git fetch origin
 git reset --hard origin/main
 
-//Amonia turn off!
+Amonia turn off!
+
+tmux attach -t fish 
+
 */
  
 const uint32_t cam_timeout  = 3600000;     

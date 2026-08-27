@@ -34,7 +34,7 @@ class WaterTank
     private:
     
     public:
-        const uint32_t sens_timeout = 1890000;     
+        const uint32_t sens_timeout = 10000; //1890000
         bool gpio_active = false;
         const int num_sensors = 2; // change if we want more
         const int num_actuators = 2;
