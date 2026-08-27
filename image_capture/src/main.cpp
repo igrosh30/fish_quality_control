@@ -1,4 +1,4 @@
-#include "StereoCapture.hpp"
+w#include "StereoCapture.hpp"
 
 const std::string default_path = "/home/ciimar/data/fotos_default";
 //~/fish_quality_control/data/fotos_teste_v1

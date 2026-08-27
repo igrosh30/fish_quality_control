@@ -9,19 +9,12 @@
 #include <algorithm>
 #include <string>
 #include <ctime>
+#include "WaterTank.cpp"
 
-using namespace std;
 
-//--------TIMEOUT VAR----------------------
-using clk = std::chrono::steady_clock;
-const uint32_t cam_timeout  = 3600000;     //60m -  3600000s
-const uint32_t sens_timeout = 1890000;    //33m -  
-
-const string sensor_path_exe  = "/home/ciimar/fish_quality_control/sensor_capture/src";
-const string capture_path_exe = "/home/ciimar/fish_quality_control/image_capture/image_capture"; // where is stored the exe?
 
 /*
-shh:  ssh ciimar@ciimar.local 192.168.220.114
+shh:  ssh userName@userName.local 192.168.220.114 
 
 important documentation calls:
     man 2 execve
@@ -40,6 +33,24 @@ git reset --hard origin/main
 //Amonia turn off!
 */
 
+using namespace std;
+
+//--------TIMEOUT VAR------------------
+using clk = std::chrono::steady_clock;
+
+ 
+const uint32_t cam_timeout  = 3600000;     
+const string capture_path_exe = "/home/ciimar/fish_quality_control/image_capture/image_capture"; // where is stored the exe?
+
+WaterTank tank;
+
+enum class camera_state
+{
+    IDLE,
+    CAPTURE//we call fork()
+};
+void update_CamState(camera_state &state, clk::time_point &anchor_cam, pid_t &cam_pid);
+
 pid_t camera_fork()
 {
     pid_t p_id = fork();
@@ -48,7 +59,7 @@ pid_t camera_fork()
         //parent process! 
         return p_id;
     }
-    char* argv_cam[] = { 
+    char* argv_cam[] = { //THE PATH IS HARDCODED TO NAME MAHCINE!
         (char*)"image_capture",//binary to run
         (char*) "/home/ciimar/fish_quality_control/data/fotos_teste_v2",
         (char*) "1",
@@ -60,90 +71,57 @@ pid_t camera_fork()
     _exit(127);
 }
 
-pid_t sensor_fork()
-{
-    
-    pid_t p_id = fork();
-
-    if(p_id)
-    {
-        //parent process received p_id of the child so it's != 0 
-        return p_id;
-    }
-    char* argv_sen[] =
-    {
-        (char*)"/home/ciimar/fish_quality_control/env/bin/python3",   
-        (char*)"/home/ciimar/fish_quality_control/sensor_capture/src/I4FSensReadRawData.py",
-        (char*)"-c",
-        (char*)"/home/ciimar/fish_quality_control/sensor_capture/config/sensors_config.json",
-        (char*)"-o",
-        (char*)"/home/ciimar/fish_quality_control/data/sensors",
-        nullptr
-    };
-    execv("/home/ciimar/fish_quality_control/env/bin/python3", argv_sen);
-    // only reached if execv FAILED:
-    perror("execv sensor");
-    _exit(127);
-}
-
-
 int main()
 {
-    /*
-    struct pollfd poll_fds[1];
-    poll_fds[0].fd = 0;
-    poll_fds[0].events = POLLIN;
-    for now it's just timeouts! 
-    */
+    int err = tank.setup_gpio();//what can I pass here? - the array of gpios to use?!];
 
-    //Timers
-    auto now = clk::now();
-    auto next_cam = now + std::chrono::milliseconds(cam_timeout);
-    auto next_sens = now + std::chrono::milliseconds(sens_timeout);
-    
-    
-    //loop:
-    while(1)
+    if(err)
     {
-        //skip photo - get hour:
-        std::time_t t = std::time(nullptr);
-        std::tm* lt = std::localtime(&t);
-        int hour = lt ->tm_hour;
+        std::cout<<"error initializing sensors "<<err << "gpios"<<endl;
+        std::cout<<"error initializing actuators"<< err<< "gpios"<<endl;
+        std::cout<<"running without gpios "<<endl;
+    }
 
-        //computations:
-        now = clk::now();                                   
-        auto soonest   = std::min(next_cam, next_sens);     
-        auto remaining = chrono::duration_cast<chrono::milliseconds>(soonest - now).count();
-        int  timeout_ms = (remaining < 0) ? 0 : (int)remaining;   
+    camera_state current_cam_state = camera_state::IDLE;
+    pid_t cam_pid  = -1;
 
-        int poll_res = poll(nullptr,0,timeout_ms);
-        if(poll_res< 0 ) continue;
-        else if(poll_res == 0) // when the timeout_ms happens! 
-        {
-            bool is_dark = (hour < 8 || hour >= 19) ? true:false;
+    //ini timers...
+    tank.anchor_sens = clk::now(); // if i make this global the functions can directly access it!-.....
+    auto anchor_cam = clk::now();
 
-            now = clk::now();
-            pid_t child_id;
-            if(next_cam <= now) // now(this timestap is greater than next_cam, means next_cam fired!)
-            {
-                cout << "Calling Camera Fork()!" << endl;
-                cout << "Hour: " <<hour << endl;
-
-                next_cam += std::chrono::milliseconds(cam_timeout); 
-                if(!is_dark)
-                    child_id = camera_fork();
-            }
-            if (next_sens <= now) 
-            {
-                next_sens += std::chrono::milliseconds(sens_timeout);
-                cout << "Calling Sensor Fork()!" << endl;
-                sensor_fork();
-                
-            }
-            
-            int st; while (waitpid(-1, &st, WNOHANG) > 0) { }
-        }
-        
-    }  
+    //automation runnig - like the loop():
+    while(1)
+    {   
+        //put this inside a constant running loop:
+        tank.read_sensors();
+        tank.update_state();
+        update_CamState(current_cam_state,anchor_cam, cam_pid);
+    }
+    //Release the lines
+    tank.release_gpio();
     return 0;
+}
+
+void update_CamState(camera_state &state, clk::time_point &anchor_cam, pid_t &cam_pid)
+{
+    switch(state)
+    {
+        case camera_state::IDLE:
+            if(clk::now()- anchor_cam >= std::chrono::milliseconds(cam_timeout))
+            {
+                state = camera_state::CAPTURE;
+                cam_pid = camera_fork();
+            }
+            break;
+        case camera_state::CAPTURE:
+            int st;
+            int ret =waitpid(cam_pid,&st, WNOHANG); 
+            if(ret > 0)//if -1 is error
+            {
+                std::cout<< "camera fork returned ok"<< endl;
+                state= camera_state::IDLE;
+                anchor_cam = clk::now();
+            }
+            break;
+    }
 }
