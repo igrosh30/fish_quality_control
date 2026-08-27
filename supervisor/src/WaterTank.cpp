@@ -66,7 +66,7 @@ void WaterTank::release_gpio()
 
 void WaterTank::update_state()//needs access to sensors! 
 {
-    std::cout<<"current tank state:"<<this->current_tank_state<<endl;
+    std::cout<<"current tank state:"<< static_cast<int>(this->current_tank_state)<<endl;
     //define that sensors[0] - bottom one!
     //define that sensors[1] - upper one!
     switch(this->current_tank_state)
