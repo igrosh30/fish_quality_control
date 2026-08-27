@@ -40,6 +40,7 @@ IC_LIBS   := -lsl_zed -lcudart
 SV_BIN    := supervisor/supervisor
 SV_SRC    := supervisor/src/main.cpp
 SV_INC    := -Isupervisor/include
+SV_LIBS   := -lpgiod 
 
 # ---- rules -------------------------------------------------
 .PHONY: all clean
@@ -50,7 +51,7 @@ $(IC_BIN): $(IC_SRC)
 	$(CXX) $(CXXFLAGS) $(IC_SRC) $(IC_INC) $(IC_LIBDIR) $(IC_LIBS) -o $@
 
 $(SV_BIN): $(SV_SRC)
-	$(CXX) $(CXXFLAGS) $(SV_SRC) $(SV_INC) -o $@
+	$(CXX) $(CXXFLAGS) $(SV_SRC) $(SV_INC) $(SV_LIBS) -o $@
 
 clean:
 	rm -f $(IC_BIN) $(SV_BIN)
