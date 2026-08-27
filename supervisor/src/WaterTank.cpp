@@ -1,6 +1,6 @@
 #include <WaterTank.hpp>
 
-void WaterTank::setup_gpio()//WaterTank
+int WaterTank::setup_gpio()//WaterTank
 {
     sensors[0].offset = 144; //pin 7
     sensors[1].offset = 43; //pin 33
@@ -43,7 +43,7 @@ void WaterTank::read_sensors()
     }
 }
 
-void WaterTank::set_actuators(gpio_ &actuator, int val)
+void WaterTank::set_actuator(gpio_ &actuator, int val)
 {
     gpiod_line_set_value(actuator.line,val);     
 }
@@ -99,7 +99,7 @@ void WaterTank::update_state()//needs access to sensors!
             break;
         
         case tank_state::FILL:
-            if(sensors[0].val== 1 && snesors[1] == 1)
+            if(sensors[0].val== 1 && sensors[1] == 1)
             {
                 set_actuator(actuators[1],0); //pump water!
                 current_tank_state= tank_state::CAPTURE;

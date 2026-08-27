@@ -47,7 +47,7 @@ class WaterTank
 
         int setup_gpio();
         void read_sensors();
-        void set_actuators(gpio_ &actuator, int val);
+        void set_actuator(gpio_ &actuator, int val);
         void release_gpio();
 
         void update_state();
