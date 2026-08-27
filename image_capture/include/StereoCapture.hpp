@@ -2,7 +2,6 @@
 
 #include <string>
 #include <iostream>
-
 #include <sl/Camera.hpp>//when compilling- specify the path with -I flag! 
 #include <ctime> 
 #include <iomanip>
