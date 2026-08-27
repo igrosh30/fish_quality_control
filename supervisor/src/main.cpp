@@ -101,7 +101,6 @@ void update_CamState(camera_state &state, clk::time_point &anchor_cam, pid_t &ca
     switch(state)
     {
         case camera_state::IDLE:
-            std::cout<<"Idle State"<<endl;
             if(clk::now()- anchor_cam >= std::chrono::milliseconds(cam_timeout))
             {
 
