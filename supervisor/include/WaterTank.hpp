@@ -5,6 +5,12 @@
 #include <gpiod.h>
 #include <ctime>
 #include <chrono>
+#include <unistd.h>
+
+using namespace std;
+
+//--------TIMEOUT VAR------------------
+using clk = std::chrono::steady_clock;
 
 enum class tank_state
 {

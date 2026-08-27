@@ -2,7 +2,6 @@
 // a multiprocessing environment.
 #include <unistd.h>
 #include <poll.h>
-#include <unistd.h>
 #include <sys/wait.h>
 #include <algorithm>
 #include <string>
@@ -30,12 +29,6 @@ git reset --hard origin/main
 
 //Amonia turn off!
 */
-
-using namespace std;
-
-//--------TIMEOUT VAR------------------
-using clk = std::chrono::steady_clock;
-
  
 const uint32_t cam_timeout  = 3600000;     
 const string capture_path_exe = "/home/ciimar/fish_quality_control/image_capture/image_capture"; // where is stored the exe?
