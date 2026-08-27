@@ -29,7 +29,7 @@ int WaterTank::setup_gpio()//WaterTank
             status += 10;
         } //further check what value need to relays... 0/1 to activate?!!!!!
     }
-    if(!status) gpio_active = true;
+    //if(!status) gpio_active = true;
     return status;
 }
 
