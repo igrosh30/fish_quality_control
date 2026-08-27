@@ -33,7 +33,7 @@ tmux attach -t fish
 
 */
  
-const uint32_t cam_timeout  = 3600000;     
+const uint32_t cam_timeout  = 30000 ;//3600000     
 const string capture_path_exe = "/home/ciimar/fish_quality_control/image_capture/image_capture"; // where is stored the exe?
 
 WaterTank tank;
@@ -104,7 +104,7 @@ void update_CamState(camera_state &state, clk::time_point &anchor_cam, pid_t &ca
             std::cout<<"Idle State"<<endl;
             if(clk::now()- anchor_cam >= std::chrono::milliseconds(cam_timeout))
             {
-                
+
                 state = camera_state::CAPTURE;
                 cam_pid = camera_fork();
             }
