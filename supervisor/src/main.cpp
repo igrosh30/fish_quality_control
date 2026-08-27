@@ -5,10 +5,7 @@
 #include <sys/wait.h>
 #include <algorithm>
 #include <string>
-
 #include "WaterTank.cpp"
-
-
 
 /*
 shh:  ssh userName@userName.local 192.168.220.114 
@@ -32,12 +29,9 @@ Amonia turn off!
 tmux attach -t fish 
 
 */
- 
-const uint32_t cam_timeout  = 30000 ;//3600000     
-const string capture_path_exe = "/home/ciimar/fish_quality_control/image_capture/image_capture"; // where is stored the exe?
+WaterTank tank; 
 
-WaterTank tank;
-
+const uint32_t cam_timeout  = 3600000;
 enum class camera_state
 {
     IDLE,
