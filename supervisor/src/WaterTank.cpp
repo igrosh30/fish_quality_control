@@ -99,7 +99,7 @@ void WaterTank::update_state()//needs access to sensors!
             break;
         
         case tank_state::FILL:
-            if(sensors[0].val== 1 && sensors[1] == 1)
+            if(sensors[0].val== 1 && sensors[1].val == 1)
             {
                 set_actuator(actuators[1],0); //pump water!
                 current_tank_state= tank_state::CAPTURE;
