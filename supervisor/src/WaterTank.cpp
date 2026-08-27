@@ -1,7 +1,6 @@
 #include <WaterTank.hpp>
 
-
-void WaterTank::setup_gpio()//
+void WaterTank::setup_gpio()//WaterTank
 {
     sensors[0].offset = 144; //pin 7
     sensors[1].offset = 43; //pin 33
@@ -38,13 +37,13 @@ void WaterTank::read_sensors()
 {
     for(int i = 0; i< this->num_sensors; i++)
     {
-        int val = gpiod_line_get_value(sensors[i].line);
+        int val = gpiod_line_get_value(this->sensors[i].line);
         if(val == -1) return;
-        sensors[i].val = val;    
+        this->sensors[i].val = val;    
     }
 }
 
-void WaterTank::set_actuators(gpio_ actuator, int val)
+void WaterTank::set_actuators(gpio_ &actuator, int val)
 {
     gpiod_line_set_value(actuator.line,val);     
 }
@@ -56,10 +55,10 @@ void WaterTank::release_gpio()
 {
     for(int i = 0; i< 2; i++)
     {
-        gpiod_line_release(sensors[i].line);
-        gpiod_line_release(actuators[i].line);
-        gpiod_chip_close(sensors[i].chip);
-        gpiod_chip_close(actuators[i].chip);
+        gpiod_line_release(this->sensors[i].line);
+        gpiod_line_release(this->actuators[i].line);
+        gpiod_chip_close(this->sensors[i].chip);
+        gpiod_chip_close(this->actuators[i].chip);
     }
 }
 

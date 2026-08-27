@@ -1,14 +1,12 @@
 //SUPERVISOR CODE
 // a multiprocessing environment.
-#include <iostream>
 #include <unistd.h>
 #include <poll.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <chrono>
 #include <algorithm>
 #include <string>
-#include <ctime>
+
 #include "WaterTank.cpp"
 
 
