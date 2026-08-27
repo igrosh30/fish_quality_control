@@ -87,7 +87,7 @@ int main()
     while(1)
     {   
         //put this inside a constant running loop:
-        tank.read_sensors();
+        tank.read_sensors();// Do I want to be always reading this? - I only call the 
         tank.update_state();
         update_CamState(current_cam_state,anchor_cam, cam_pid);
     }
@@ -101,8 +101,10 @@ void update_CamState(camera_state &state, clk::time_point &anchor_cam, pid_t &ca
     switch(state)
     {
         case camera_state::IDLE:
+            std::cout<<"Idle State"<<endl;
             if(clk::now()- anchor_cam >= std::chrono::milliseconds(cam_timeout))
             {
+                
                 state = camera_state::CAPTURE;
                 cam_pid = camera_fork();
             }
