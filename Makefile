@@ -40,7 +40,7 @@ IC_LIBS   := -lsl_zed -lcudart
 SV_BIN    := supervisor/supervisor
 SV_SRC    := supervisor/src/main.cpp
 SV_INC    := -Isupervisor/include
-SV_LIBS   := -lpgiod 
+SV_LIBS   := -lgpiod 
 
 # ---- rules -------------------------------------------------
 .PHONY: all clean
