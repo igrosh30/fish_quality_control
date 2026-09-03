@@ -31,7 +31,7 @@ tmux attach -t fish
 */
 WaterTank tank; 
 
-const uint32_t cam_timeout  = 3600000;
+const uint32_t cam_timeout  = 30000;
 enum class camera_state
 {
     IDLE,
@@ -61,7 +61,7 @@ pid_t camera_fork()
 
 int main()
 {
-    int err = tank.setup_gpio();//what can I pass here? - the array of gpios to use?!];
+    int err = tank.setup_gpio();
 
     if(err)
     {
@@ -80,8 +80,7 @@ int main()
     //automation runnig - like the loop():
     while(1)
     {   
-        //put this inside a constant running loop:
-        tank.read_sensors();// Do I want to be always reading this? - I only call the 
+        tank.read_sensors();
         tank.update_state();
         update_CamState(current_cam_state,anchor_cam, cam_pid);
     }
