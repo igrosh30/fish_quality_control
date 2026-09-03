@@ -31,7 +31,7 @@ tmux attach -t fish
 */
 WaterTank tank; 
 
-const uint32_t cam_timeout  = 30000;
+const uint32_t cam_timeout  = 3600000;
 enum class camera_state
 {
     IDLE,
