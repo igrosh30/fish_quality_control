@@ -69,7 +69,6 @@ pid_t camera_fork()
 
 int main()
 {
-    camera_values camera;
     int err = tank.setup_gpio();
 
     if(err)
@@ -79,19 +78,22 @@ int main()
         std::cout<<"running without gpios "<<endl;
     }
 
-    camera.state = camera_state::IDLE;
-    camera.pid  = -1;
-
+    camera_values cam =
+    {
+        state = camera_state::IDLE;
+        pid  = -1;
+        anchor_cam = clk::now();
+    };
+    
     //ini timers...
     tank.anchor_sens = clk::now(); // if i make this global the functions can directly access it!-.....
-    camera.anchor_cam = clk::now();
 
     //automation runnig - like the loop():
     while(1)
     {   
         tank.read_sensors();
         tank.update_state();
-        update_CamState(camera);
+        update_CamState(cam);
     }
     //Release the lines
     tank.release_gpio();
