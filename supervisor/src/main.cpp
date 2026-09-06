@@ -8,7 +8,7 @@
 #include "WaterTank.cpp"
 
 /*
-shh:  ssh userName@userName.local 192.168.220.114 
+shh:  ssh userName@userName.local 
 
 important documentation calls:
     man 2 execve
@@ -31,13 +31,21 @@ tmux attach -t fish
 */
 WaterTank tank; 
 
-const uint32_t cam_timeout  = 3600000;
+const uint32_t cam_timeout  = 60000;
 enum class camera_state
 {
     IDLE,
     CAPTURE//we call fork()
 };
-void update_CamState(camera_state &state, clk::time_point &anchor_cam, pid_t &cam_pid);
+
+struct camera_val
+{
+    camera_state state;
+    pid_t pid;
+    clk::time_point &anchor_cam,
+};
+
+void update_CamState(camera_val &camera);
 
 pid_t camera_fork()
 {
@@ -61,6 +69,7 @@ pid_t camera_fork()
 
 int main()
 {
+    camera_val camera;
     int err = tank.setup_gpio();
 
     if(err)
@@ -70,46 +79,50 @@ int main()
         std::cout<<"running without gpios "<<endl;
     }
 
-    camera_state current_cam_state = camera_state::IDLE;
-    pid_t cam_pid  = -1;
+    camera.state = camera_state::IDLE;
+    camera.pid  = -1;
 
     //ini timers...
     tank.anchor_sens = clk::now(); // if i make this global the functions can directly access it!-.....
-    auto anchor_cam = clk::now();
+    camera.anchor_cam = clk::now();
 
     //automation runnig - like the loop():
     while(1)
     {   
         tank.read_sensors();
         tank.update_state();
-        update_CamState(current_cam_state,anchor_cam, cam_pid);
+        update_CamState(camera);
     }
     //Release the lines
     tank.release_gpio();
     return 0;
 }
 
-void update_CamState(camera_state &state, clk::time_point &anchor_cam, pid_t &cam_pid)
+void update_CamState(camera_val &cam)
 {
-    switch(state)
+    switch(cam.state)
     {
         case camera_state::IDLE:
-            if(clk::now()- anchor_cam >= std::chrono::milliseconds(cam_timeout))
+            if(clk::now()- cam.anchor_cam >= std::chrono::milliseconds(cam_timeout))
             {
-
-                state = camera_state::CAPTURE;
-                cam_pid = camera_fork();
+                cam.state= camera_state::CAPTURE;
+                cout<<"Timeout....calling camera fork()";
+                cam.pid= camera_fork();
             }
             break;
         case camera_state::CAPTURE:
             int st;
-            int ret =waitpid(cam_pid,&st, WNOHANG); 
-            if(ret > 0)//if -1 is error
+            int ret =waitpid(cam.pid,&st, WNOHANG); 
+            if(ret > 0)//if -1 is error - we are stuck here! 
             {
                 std::cout<< "camera fork returned ok"<< endl;
-                state= camera_state::IDLE;
-                anchor_cam = clk::now();
+                cam.stat= camera_state::IDLE;
+                cam.anchor_cam = clk::now();
+            }else
+            {
+
             }
+            
             break;
     }
 }
