@@ -78,12 +78,7 @@ int main()
         std::cout<<"running without gpios "<<endl;
     }
 
-    camera_values cam =
-    {
-        state = camera_state::IDLE,
-        pid  = -1,
-        anchor_cam = clk::now(),
-    };
+    camera_values cam = { camera_state::IDLE, -1, clk::now()};
     
     //ini timers...
     tank.anchor_sens = clk::now(); // if i make this global the functions can directly access it!-.....
