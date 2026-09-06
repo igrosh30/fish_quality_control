@@ -118,9 +118,6 @@ void update_CamState(camera_val &cam)
                 std::cout<< "camera fork returned ok"<< endl;
                 cam.stat= camera_state::IDLE;
                 cam.anchor_cam = clk::now();
-            }else
-            {
-
             }
             
             break;
