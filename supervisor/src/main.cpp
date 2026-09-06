@@ -80,9 +80,9 @@ int main()
 
     camera_values cam =
     {
-        state = camera_state::IDLE;
-        pid  = -1;
-        anchor_cam = clk::now();
+        state = camera_state::IDLE,
+        pid  = -1,
+        anchor_cam = clk::now(),
     };
     
     //ini timers...
