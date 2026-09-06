@@ -42,7 +42,7 @@ struct camera_values
 {
     camera_state state;
     pid_t pid;
-    clk::time_point &anchor_cam;
+    clk::time_point anchor_cam;
 };
 
 void update_CamState(camera_values &camera);
