@@ -38,12 +38,12 @@ enum class camera_state
     CAPTURE//we call fork()
 };
 
-struct
+struct camera_values
 {
     camera_state state;
     pid_t pid;
     clk::time_point &anchor_cam;
-}camera_values;
+};
 
 void update_CamState(camera_values &camera);
 
