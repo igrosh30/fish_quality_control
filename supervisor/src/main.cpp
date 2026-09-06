@@ -38,14 +38,14 @@ enum class camera_state
     CAPTURE//we call fork()
 };
 
-struct camera_val
+struct
 {
     camera_state state;
     pid_t pid;
-    clk::time_point &anchor_cam,
-};
+    clk::time_point &anchor_cam;
+}camera_values;
 
-void update_CamState(camera_val &camera);
+void update_CamState(camera_values &camera);
 
 pid_t camera_fork()
 {
@@ -69,7 +69,7 @@ pid_t camera_fork()
 
 int main()
 {
-    camera_val camera;
+    camera_values camera;
     int err = tank.setup_gpio();
 
     if(err)
@@ -98,7 +98,7 @@ int main()
     return 0;
 }
 
-void update_CamState(camera_val &cam)
+void update_CamState(camera_values &cam)
 {
     switch(cam.state)
     {
@@ -116,7 +116,7 @@ void update_CamState(camera_val &cam)
             if(ret > 0)//if -1 is error - we are stuck here! 
             {
                 std::cout<< "camera fork returned ok"<< endl;
-                cam.stat= camera_state::IDLE;
+                cam.state= camera_state::IDLE;
                 cam.anchor_cam = clk::now();
             }
             
