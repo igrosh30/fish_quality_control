@@ -32,6 +32,7 @@ tmux attach -t fish
 WaterTank tank; 
 
 const uint32_t cam_timeout  = 3600000;
+const int FRAMES_REQUESTED = 1;
 enum class camera_state
 {
     IDLE,
@@ -159,5 +160,6 @@ void write_logStatus(int st, int fd)   // by value, no &
     int len = snprintf(buf, sizeof(buf), "%s | %d | %s | %s\n",
                        timebuf, photos, status, notes);
     if (len > (int)sizeof(buf)) len = sizeof(buf);
-    write(fd, buf, len);
+    ssize_t n = write(fd, buf, len);
+    if (n < 0) perror("write log");
 }
