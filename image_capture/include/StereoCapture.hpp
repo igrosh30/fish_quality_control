@@ -1,12 +1,8 @@
 #pragma once
 
-#include <string>
-#include <iostream>
+#include "Config.h"
 #include <sl/Camera.hpp>//when compilling- specify the path with -I flag! 
-#include <ctime> 
-#include <iomanip>
-#include <sstream>
-#include <filesystem>
+
 /*
 fotos s/distorções! 
 videos de 10s: 10/30 frames/s:cada frame do video fornecido sem distorções.

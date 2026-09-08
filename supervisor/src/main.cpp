@@ -1,10 +1,9 @@
 //SUPERVISOR CODE
 // a multiprocessing environment.
-#include <unistd.h>
+#include "Config.h"//need to pass the path when compiling
 #include <poll.h>
 #include <sys/wait.h>
 #include <algorithm>
-#include <string>
 #include "WaterTank.cpp"
 
 /*
@@ -31,11 +30,11 @@ tmux attach -t fish
 */
 WaterTank tank; 
 
-const uint32_t cam_timeout  = 60000;
+const uint32_t cam_timeout  = 3600000;
 enum class camera_state
 {
     IDLE,
-    CAPTURE//we call fork()
+    CAPTURE// call fork()
 };
 
 struct camera_values
@@ -79,18 +78,16 @@ int main()
     }
 
     camera_values cam = { camera_state::IDLE, -1, clk::now()};
-    
-    //ini timers...
     tank.anchor_sens = clk::now(); // if i make this global the functions can directly access it!-.....
 
     //automation runnig - like the loop():
     while(1)
     {   
-        tank.read_sensors();
-        tank.update_state();
+        //tank.read_sensors();
         update_CamState(cam);
+        tank.update_state();
     }
-    //Release the lines
+    //Release the table lines
     tank.release_gpio();
     return 0;
 }
@@ -102,21 +99,44 @@ void update_CamState(camera_values &cam)
         case camera_state::IDLE:
             if(clk::now()- cam.anchor_cam >= std::chrono::milliseconds(cam_timeout))
             {
+                std::cout<<"Timeout....calling camera fork()"<< endl;
                 cam.state= camera_state::CAPTURE;
-                cout<<"Timeout....calling camera fork()";
                 cam.pid= camera_fork();
             }
             break;
         case camera_state::CAPTURE:
             int st;
             int ret =waitpid(cam.pid,&st, WNOHANG); 
-            if(ret > 0)//if -1 is error - we are stuck here! 
-            {
-                std::cout<< "camera fork returned ok"<< endl;
-                cam.state= camera_state::IDLE;
-                cam.anchor_cam = clk::now();
-            }
-            
+            if(ret == 0) return;
+            if(ret == -1) return; // para quê vereficar!? 
+            //store info
+            writeStatus(st);
+            //reset always
+            cam.state = camera_state::IDLE;
+            cam.anchor_cam = clk::now();
             break;
     }
 }
+
+/*
+void write_logStatus(int &st) //write to a log file
+{
+    if (WIFEXITED(st))
+    {
+        uint8_t code = WEXITSTATUS(st);      
+        //we can just write to the file the code result! 
+        if(code == static_cast<int>(CamResult::SUCCESS))
+        {
+                    
+        }
+        else if(code == code == static_cast<int>(CamResult::CAMERA_INIT))
+        {
+                
+        }
+            
+    }
+    else if (WIFSIGNALED(st))
+    {
+        int sig = WTERMSIG(st);                // crashed/killed, no exit code exists        
+    }
+}*/
