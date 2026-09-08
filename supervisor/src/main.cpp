@@ -110,10 +110,13 @@ void update_CamState(camera_values &cam)
             if(ret == 0) return;
             if(ret == -1) return; // para quê vereficar!? 
             //store info
-            writeStatus(st);
+            //writeStatus(st);
             //reset always
-            cam.state = camera_state::IDLE;
-            cam.anchor_cam = clk::now();
+            if(ret > 0)
+            {
+                cam.state = camera_state::IDLE;
+                cam.anchor_cam = clk::now();
+            }
             break;
     }
 }

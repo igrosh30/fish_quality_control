@@ -20,6 +20,7 @@
 # ---- Compiler & flags shared by both targets ---------------
 CXX      := g++
 CXXFLAGS := -std=c++17 -Wall -Wextra -O2
+CXXFLAGS += -Icommon/include
 
 # ---- image_capture -----------------------------------------
 IC_BIN    := image_capture/image_capture
