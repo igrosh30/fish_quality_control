@@ -113,7 +113,7 @@ void update_CamState(camera_values &cam)
             if(ret == 0) return;
             if(ret == -1) return; // para quê vereficar!? 
             //store info
-            //writeStatus(st,cam.fd);
+            writeStatus(st,cam.fd);
             //reset always
             if(ret > 0)
             {
