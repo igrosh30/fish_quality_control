@@ -49,6 +49,7 @@ struct camera_values
 
 void update_CamState(camera_values &camera);
 void write_logStatus(int st, int fd);
+static const char* cam_result_str(uint8_t code);
 
 pid_t camera_fork()
 {
@@ -162,4 +163,17 @@ void write_logStatus(int st, int fd)   // by value, no &
     if (len > (int)sizeof(buf)) len = sizeof(buf);
     ssize_t n = write(fd, buf, len);
     if (n < 0) perror("write log");
+}
+
+static const char* cam_result_str(uint8_t code)
+{
+    switch (static_cast<CamResult>(code))
+    {
+        case CamResult::SUCCESS:      return "SUCCESS";
+        case CamResult::CAMERA_INIT:  return "CAMERA_INIT";
+        case CamResult::CAPTURE_FAIL: return "CAPTURE_FAIL";
+        case CamResult::EXEC_FAILED:  return "EXEC_FAILED";
+        case CamResult::KILLED:       return "KILLED";
+        default:                      return "UNKNOWN";
+    }
 }
