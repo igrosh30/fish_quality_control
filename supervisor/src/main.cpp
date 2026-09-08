@@ -47,6 +47,7 @@ struct camera_values
 };
 
 void update_CamState(camera_values &camera);
+void write_logStatus(int st, int fd);
 
 pid_t camera_fork()
 {
@@ -114,7 +115,7 @@ void update_CamState(camera_values &cam)
             if(ret == 0) return;
             if(ret == -1) return; // para quê vereficar!? 
             //store info
-            writeStatus(st,cam.fd);
+            write_logStatus(st,cam.fd);
             //reset always
             if(ret > 0)
             {
