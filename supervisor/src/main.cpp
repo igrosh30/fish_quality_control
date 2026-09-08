@@ -42,6 +42,7 @@ struct camera_values
     camera_state state;
     pid_t pid;
     clk::time_point anchor_cam;
+    int fd;
 };
 
 void update_CamState(camera_values &camera);
@@ -68,8 +69,10 @@ pid_t camera_fork()
 
 int main()
 {
-    int err = tank.setup_gpio();
 
+    int fd = open(cam_log_file.c_str(),O_CREAT | O_APPEND|O_WRONLY, 0644);//cam_log_file defined Config.h
+
+    int err = tank.setup_gpio();
     if(err)
     {
         std::cout<<"error initializing sensors "<<err << "gpios"<<endl;
@@ -77,7 +80,7 @@ int main()
         std::cout<<"running without gpios "<<endl;
     }
 
-    camera_values cam = { camera_state::IDLE, -1, clk::now()};
+    camera_values cam = { camera_state::IDLE, -1, clk::now(),fd};
     tank.anchor_sens = clk::now(); // if i make this global the functions can directly access it!-.....
 
     //automation runnig - like the loop():
@@ -110,7 +113,7 @@ void update_CamState(camera_values &cam)
             if(ret == 0) return;
             if(ret == -1) return; // para quê vereficar!? 
             //store info
-            //writeStatus(st);
+            //writeStatus(st,cam.fd);
             //reset always
             if(ret > 0)
             {
@@ -121,25 +124,38 @@ void update_CamState(camera_values &cam)
     }
 }
 
-/*
-void write_logStatus(int &st) //write to a log file
+void write_logStatus(int st, int fd)   // by value, no &
 {
+    if (fd < 0)
+    {
+        std::cout << "error opening the file" << endl;
+        return;
+    }
+
+    std::time_t now = std::time(nullptr);
+    char timebuf[32];
+    std::strftime(timebuf, sizeof(timebuf), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+
+    const char* status = "UNKNOWN";
+    int photos = 0;
+    char notes[64] = "";
+
     if (WIFEXITED(st))
     {
-        uint8_t code = WEXITSTATUS(st);      
-        //we can just write to the file the code result! 
-        if(code == static_cast<int>(CamResult::SUCCESS))
-        {
-                    
-        }
-        else if(code == code == static_cast<int>(CamResult::CAMERA_INIT))
-        {
-                
-        }
-            
+        uint8_t code = WEXITSTATUS(st);
+        status = cam_result_str(code);
+        if (code == static_cast<uint8_t>(CamResult::SUCCESS))
+            photos = FRAMES_REQUESTED;
     }
     else if (WIFSIGNALED(st))
     {
-        int sig = WTERMSIG(st);                // crashed/killed, no exit code exists        
+        status = "KILLED";
+        snprintf(notes, sizeof(notes), "signal=%d", WTERMSIG(st));
     }
-}*/
+
+    char buf[128];
+    int len = snprintf(buf, sizeof(buf), "%s | %d | %s | %s\n",
+                       timebuf, photos, status, notes);
+    if (len > (int)sizeof(buf)) len = sizeof(buf);
+    write(fd, buf, len);
+}
