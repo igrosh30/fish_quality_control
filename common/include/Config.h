@@ -24,4 +24,4 @@ const std::string default_path = "/home/ciimar/data/fotos_default";
 const int default_captures = 5;
 
 //LogFile path
-const std::string cam_log_file =  "/home/ciimar/data/logCam.txt";
+const std::string cam_log_file =  "/home/ciimar/fish_quality_control/data/logCam.txt";
