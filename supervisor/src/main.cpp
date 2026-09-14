@@ -6,9 +6,11 @@
 #include <algorithm>
 #include "WaterTank.cpp"
 #include <fcntl.h>
+#include <ctime>
 
 /*
 shh:  ssh userName@userName.local 
+scp -r ciimar@192.168.220.114::/home/ciimar/fish_quality_control/data/fotos_teste_v2/20260912-075629_lef.png ~/Downloads/
 
 important documentation calls:
     man 2 execve
@@ -74,15 +76,18 @@ pid_t camera_fork()
 int main()
 {
 
+    //O_CREAT - creates a file not the directory - if doens't exist open() creases
+
     int fd = open(cam_log_file.c_str(),O_CREAT | O_APPEND|O_WRONLY, 0644);//cam_log_file defined Config.h
 
+    /*
     int err = tank.setup_gpio();
     if(err)
     {
         std::cout<<"error initializing sensors "<<err << "gpios"<<endl;
         std::cout<<"error initializing actuators"<< err<< "gpios"<<endl;
         std::cout<<"running without gpios "<<endl;
-    }
+    }*/
 
     camera_values cam = { camera_state::IDLE, -1, clk::now(),fd};
     tank.anchor_sens = clk::now(); // if i make this global the functions can directly access it!-.....
@@ -104,26 +109,34 @@ void update_CamState(camera_values &cam)
     switch(cam.state)
     {
         case camera_state::IDLE:
-            if(clk::now()- cam.anchor_cam >= std::chrono::milliseconds(cam_timeout))
+            
+            if(clk::now()- cam.anchor_cam >= std::chrono::milliseconds(cam_timeout) )
             {
-                std::cout<<"Timeout....calling camera fork()"<< endl;
-                cam.state= camera_state::CAPTURE;
-                cam.pid= camera_fork();
+                //std::cout<<"Timeout....calling camera fork()"<< endl;
+                time_t timestamp = time(&timestamp);
+                struct tm datetime = *localtime(&timestamp);
+                if(datetime.tm_hour>= 21 || datetime.tm_hour <= 8)
+                {
+                    //time to sleep! 
+                    cam.anchor_cam = clk::now();
+                }
+                else
+                {
+                    cam.state= camera_state::CAPTURE;
+                    cam.pid= camera_fork();
+                }
             }
             break;
         case camera_state::CAPTURE:
             int st;
             int ret =waitpid(cam.pid,&st, WNOHANG); 
             if(ret == 0) return;
-            if(ret == -1) return; // para quê vereficar!? 
+            if(ret == -1) return; 
+        
             //store info
             write_logStatus(st,cam.fd);
-            //reset always
-            if(ret > 0)
-            {
-                cam.state = camera_state::IDLE;
-                cam.anchor_cam = clk::now();
-            }
+            cam.state = camera_state::IDLE;
+            cam.anchor_cam = clk::now();
             break;
     }
 }
@@ -132,7 +145,7 @@ void write_logStatus(int st, int fd)   // by value, no &
 {
     if (fd < 0)
     {
-        std::cout << "error opening the file" << endl;
+        perror("open log");
         return;
     }
 
@@ -142,7 +155,7 @@ void write_logStatus(int st, int fd)   // by value, no &
 
     const char* status = "UNKNOWN";
     int photos = 0;
-    char notes[64] = "";
+    char notes[64] = "";//if passed something! 
 
     if (WIFEXITED(st))
     {

@@ -58,7 +58,7 @@ int StereoCapture::capture_images(int num, const std::string& folder_path)
             //auto timestamp_l = zed.getTimestamp(sl::TIME_REFERENCE::IMAGE); std::to_string(timestamp_l.getMilliseconds());
             //auto timestamp_r = zed.getTimestamp(sl::TIME_REFERENCE::IMAGE);
 
-            std::string path_l = folder_path + "/" + stamp + "_lef.png";            
+            std::string path_l = folder_path + "/" + stamp + "_left.png";            
             std::string path_r = folder_path + "/" + stamp + "_right.png";
             
             //std::cout<<"Stored path: "<<path<<std::endl;
