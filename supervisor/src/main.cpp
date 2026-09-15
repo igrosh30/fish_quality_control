@@ -63,7 +63,7 @@ pid_t camera_fork()
     }
     char* argv_cam[] = { //THE PATH IS HARDCODED TO NAME MAHCINE!
         (char*)"image_capture",//binary to run
-        (char*) "/home/ciimar/fish_quality_control/data/fotos_teste_v2",
+        (char*) "/home/ciimar/fish_quality_control/data/fotos_teste_v2",//change this to folder pending! 
         (char*) "1",
         nullptr
     };
@@ -77,7 +77,6 @@ int main()
 {
 
     //O_CREAT - creates a file not the directory - if doens't exist open() creases
-
     int fd = open(cam_log_file.c_str(),O_CREAT | O_APPEND|O_WRONLY, 0644);//cam_log_file defined Config.h
 
     /*
