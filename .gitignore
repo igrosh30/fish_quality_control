@@ -13,7 +13,6 @@ __pycache__/
 
 # config (check this — remove line if you want it versioned)
 image_capture/src/config/
-sensor_capture
 
 # macOS
 .DS_Store
