@@ -1,15 +1,16 @@
 #include <curl/curl.h>
 #include <iostream>
 #include <filesystem>
-#include <Config.h>
+//#include <Config.h>
 
 namespace fs = std::filesystem;
 
 int main(int argc, char **argv) //does the supervisor passes the path to where the captures where stored- is it fixed!!
 {
 
-    std::string path = argc >1 ? argv[1] : "";  
-    
+    std::string path = argc >1 ? argv[1] : "/Users/igor/Documents/ciimar/code/fish_quality_control/data/pending";  
+    fs::path upload_dir = fs::path(path).parent_path() / "uploaded";
+
     CURL *curl;
     CURLcode res;
     res =curl_global_init(CURL_GLOBAL_ALL);
@@ -43,7 +44,13 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
             
             /*Perfomr the request, res gets the return code*/
             res = curl_easy_perform(curl);
-            if(res == CURLE_OK) tot_pushed++;
+            long http_code = 0;
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+            if (res == CURLE_OK && http_code == 201)
+            {
+                fs::rename(entry.path(), upload_dir / entry.path().filename());
+                tot_pushed++;
+            }
             //need to rewrite that file to the /uploaded folder! 
             curl_mime_free(mime);
         }
