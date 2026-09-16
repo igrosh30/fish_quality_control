@@ -37,7 +37,7 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
         for(const auto& entry: fs::directory_iterator(path))
         {
             if (!entry.is_regular_file()) continue;             
-            if (tot_push > 0) break;
+            if (tot_push <= 0) break;
             const char* filepath = entry.path().c_str();
 
             curl_mime *mime= curl_mime_init(curl); //the body to send over HTTP
