@@ -88,7 +88,7 @@ pid_t push_fork()
     };
     execv("/home/ciimar/fish_quality_control/push_captures/push_captures", argv_push);
     perror("execv push");
-    _exti(127);
+    _exit(127);
 }
 
 int main()
