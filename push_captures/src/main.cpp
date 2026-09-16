@@ -8,7 +8,9 @@ namespace fs = std::filesystem;
 int main(int argc, char **argv) //does the supervisor passes the path to where the captures where stored- is it fixed!!
 {
     //"/Users/igor/Documents/ciimar/code/fish_quality_control/data/pending" - for computer testing
-    std::string path = argc >1 ? argv[1] : pendig_def_path;  
+    std::string path = argc >=2 ? argv[1] : pendig_def_path; 
+    int tot_push = argc >= 3 ? std::stoi(argv[2]) : 13; // see how many pictures we would take idealy in a day! 
+    
     fs::path upload_dir = fs::path(path).parent_path() / "uploaded";
 
     CURL *curl;
@@ -26,11 +28,10 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
         curl_easy_setopt(curl,CURLOPT_URL,"http://192.168.220.175:8000/push");//further need to understand how we'll reach the server - we do have VPN in the CIIMAR 
 
         
-        int tot_pushed = 0;
         for(const auto& entry: fs::directory_iterator(path))
         {
             if (!entry.is_regular_file()) continue;             
-            if (tot_pushed >= 10) break;
+            if (tot_push > 0) break;
             const char* filepath = entry.path().c_str();
 
             curl_mime *mime= curl_mime_init(curl); //the body to send over HTTP
@@ -48,7 +49,7 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
             if (res == CURLE_OK && http_code == 201)
             {
                 fs::rename(entry.path(), upload_dir / entry.path().filename());
-                tot_pushed++;
+                tot_push--;
             }
             //need to rewrite that file to the /uploaded folder! 
             curl_mime_free(mime);
