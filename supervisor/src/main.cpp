@@ -33,7 +33,7 @@ tmux attach -t fish
 */
 WaterTank tank; 
 
-const uint32_t cam_timeout  = 3600000;
+const uint32_t cam_timeout  = 120000;//3600000
 const int FRAMES_REQUESTED = 1;
 enum class camera_state
 {
@@ -71,6 +71,24 @@ pid_t camera_fork()
     // only reached if execv FAILED:
     perror("execv camera");
     _exit(127);
+}
+
+pid_t push_fork()
+{
+    pid_t p_id = fork();
+    if(p_id)
+        return p_id;
+    
+    char* argv_push[] = { //THE PATH IS HARDCODED TO NAME MAHCINE!
+        (char*)"push_captures",//binary to run
+        /*only if we want to pass the path 
+        (char*) "/home/ciimar/fish_quality_control/data/fotos_teste_v2",
+        */
+        nullptr
+    };
+    execv("/home/ciimar/fish_quality_control/push_captures/push_captures", argv_push);
+    perror("execv push");
+    _exti(127);
 }
 
 int main()

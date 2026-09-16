@@ -130,10 +130,8 @@ pid_t WaterTank::sensor_fork()
     pid_t p_id = fork();
 
     if(p_id)
-    {
-        //parent process received p_id of the child so it's != 0 
         return p_id;
-    }
+    
     char* argv_sen[] =
     {
         (char*)"/home/ciimar/fish_quality_control/env/bin/python3",   

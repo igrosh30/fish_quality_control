@@ -32,6 +32,10 @@ IC_INC    := -Iimage_capture/include \
 IC_LIBDIR := -L/usr/local/zed/lib \
              -L/usr/local/cuda/lib64
 
+# ---- push_capture -----------------------------------------
+PC_BIN      := push_captures/push_captures
+PC_SRC      := push_captures/src/main.cpp 
+PC_LIBS     := -lcurl
 # >>> FILL THIS FROM YOUR OWN WORKING g++ COMMAND <<<
 # These are the *typical* ZED + CUDA libs, but I don't have your
 # exact link line, so verify these match the -l flags you used.
@@ -46,13 +50,17 @@ SV_LIBS   := -lgpiod
 # ---- rules -------------------------------------------------
 .PHONY: all clean
 
-all: $(IC_BIN) $(SV_BIN)
+all: $(IC_BIN) $(SV_BIN) $(PC_BIN)
 
 $(IC_BIN): $(IC_SRC)
 	$(CXX) $(CXXFLAGS) $(IC_SRC) $(IC_INC) $(IC_LIBDIR) $(IC_LIBS) -o $@
 
 $(SV_BIN): $(SV_SRC)
 	$(CXX) $(CXXFLAGS) $(SV_SRC) $(SV_INC) $(SV_LIBS) -o $@
+
+$(PC_BIN): $(PC_SRC)
+	$(CXX) $(CXXFLAGS) $(PC_SRC) $(PC_LIBDIR) $(PC_LIBS) -o $@ 
+
 
 clean:
 	rm -f $(IC_BIN) $(SV_BIN)

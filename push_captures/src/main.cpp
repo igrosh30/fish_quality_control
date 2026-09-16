@@ -1,14 +1,14 @@
 #include <curl/curl.h>
 #include <iostream>
 #include <filesystem>
-//#include <Config.h>
+#include <Config.h>
 
 namespace fs = std::filesystem;
 
 int main(int argc, char **argv) //does the supervisor passes the path to where the captures where stored- is it fixed!!
 {
-
-    std::string path = argc >1 ? argv[1] : "/Users/igor/Documents/ciimar/code/fish_quality_control/data/pending";  
+    //"/Users/igor/Documents/ciimar/code/fish_quality_control/data/pending" - for computer testing
+    std::string path = argc >1 ? argv[1] : pendig_def_path;  
     fs::path upload_dir = fs::path(path).parent_path() / "uploaded";
 
     CURL *curl;
@@ -22,7 +22,8 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
     if(curl)
     {    
         //set the URL that will receive the POST
-        curl_easy_setopt(curl,CURLOPT_URL,"http://localhost:8000/push");//further need to understand how we'll reach the server - we do have VPN in the CIIMAR 
+        
+        curl_easy_setopt(curl,CURLOPT_URL,"http://192.168.220.175:8000/push");//further need to understand how we'll reach the server - we do have VPN in the CIIMAR 
 
         
         int tot_pushed = 0;
@@ -32,12 +33,10 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
             if (tot_pushed >= 10) break;
             const char* filepath = entry.path().c_str();
 
-            curl_mime *mime =curl_mime_init(curl); //the body to send over HTTP
+            curl_mime *mime= curl_mime_init(curl); //the body to send over HTTP
             /*Creating a slot inside the body and adding components*/
             curl_mimepart *part= curl_mime_addpart(mime);
             curl_mime_name(part,"file");
-            
-            //need to compute the path! 
             curl_mime_filedata(part,filepath);
             
             curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);//Attach the body to the post request
