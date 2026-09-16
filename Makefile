@@ -63,4 +63,4 @@ $(PC_BIN): $(PC_SRC)
 
 
 clean:
-	rm -f $(IC_BIN) $(SV_BIN)
+	rm -f $(IC_BIN) $(SV_BIN) $(PC_BIN)
