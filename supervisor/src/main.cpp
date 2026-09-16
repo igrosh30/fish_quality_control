@@ -30,10 +30,14 @@ Amonia turn off!
 
 tmux attach -t fish 
 
+PROCESS MANAGMENT:
+Process tree: watch -n 0.5 'pstree -p $(pgrep -x supervisor)'
+check a process running with a name: pgrep -a name *not the best! 
+
 */
 WaterTank tank; 
 
-const uint32_t cam_timeout  = 60000;//3600000
+const uint32_t cam_timeout  = 3600000;
 const int FRAMES_REQUESTED = 1;
 enum class camera_state
 {
@@ -114,7 +118,7 @@ int main()
     {   
         //tank.read_sensors();
         update_CamState(cam);
-        tank.update_state();
+        //tank.update_state();
     }
     //Release the table lines
     tank.release_gpio();
