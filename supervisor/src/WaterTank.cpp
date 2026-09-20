@@ -1,7 +1,9 @@
 #include <WaterTank.hpp>
 
-int WaterTank::setup_gpio()//WaterTank
+int WaterTank::setup()//WaterTank
 {
+    this->current_tank_state = tank_state::IDLE;
+
     sensors[0].offset = 144; //pin 7
     sensors[1].offset = 43; //pin 33
 

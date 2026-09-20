@@ -20,10 +20,9 @@ enum class CamResult : u_int8_t
 
 
 //Camera Parameters:
-const std::string default_path = "/home/ciimar/data/fotos_default";
-const int default_captures = 5;
-
-//LogFile path
-const std::string cam_log_file =  "/home/ciimar/fish_quality_control/data/logCam.txt";
-
+const int num_def_cap = 4;
+/*Where we will store image_captures:*/
 const std::string pendig_def_path = "/home/ciimar/fish_quality_control/data/pending"; //CANNOT END IN /pending/ the / at the end will trow errors! 
+
+
+

@@ -8,8 +8,9 @@ namespace fs = std::filesystem;
 int main(int argc, char **argv) //does the supervisor passes the path to where the captures where stored- is it fixed!!
 {
     //"/Users/igor/Documents/ciimar/code/fish_quality_control/data/pending" - for computer testing
-    std::string path = argc >=2 ? argv[1] : pendig_def_path; 
-    int tot_push = argc >= 3 ? std::stoi(argv[2]) : 13; // see how many pictures we would take idealy in a day! 
+    int tot_push = argc >= 2 ? std::stoi(argv[1]) : 26; // see how many pictures we would take idealy in a day! 
+    std::string path = argc >=3 ? argv[2] : pendig_def_path; 
+    int tot_uploads = 0;
     //std::cout<<"inside the main..."<<std::endl;
 
     fs::path upload_dir = fs::path(path).parent_path() / "uploaded";
@@ -50,6 +51,7 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
             if (res == CURLE_OK && http_code == 201)
             {
                 fs::rename(entry.path(), upload_dir / entry.path().filename());
+                tot_uploads++;
                 tot_push--;
             }
             //need to rewrite that file to the /uploaded folder! 
@@ -60,5 +62,5 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
         
     curl_global_cleanup();
 
-    return 0;
+    return tot_uploads;
 }

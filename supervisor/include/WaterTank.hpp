@@ -41,11 +41,11 @@ class WaterTank
         gpio_ sensors[2];
         gpio_ actuators[2];
 
-        tank_state current_tank_state = tank_state::IDLE;
+        tank_state current_tank_state;
         clk::time_point anchor_sens;
         pid_t sens_pid;
 
-        int setup_gpio();
+        int setup();
         void read_sensors();
         void set_actuator(gpio_ &actuator, int val);
         void release_gpio();
