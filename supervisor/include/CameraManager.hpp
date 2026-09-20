@@ -43,7 +43,7 @@ class CameraManager
     void setup();
     pid_t camera_fork();
     pid_t push_fork(int num_captures);
-    void update_CamState();
+    void update();
     void write_logStatus(int st, int fd);
 };
 

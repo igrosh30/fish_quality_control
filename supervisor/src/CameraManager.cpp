@@ -14,7 +14,7 @@ void CameraManager::setup()
     this->havePushed = false;
 }
 
-void CameraManager::update_CamState()
+void CameraManager::update()
 {
     switch(this->current_cam_state)
     {
@@ -24,7 +24,7 @@ void CameraManager::update_CamState()
             {
                 time_t timestamp = time(&timestamp);
                 struct tm datetime = *localtime(&timestamp);
-                if(datetime.tm_hour>= 21 || datetime.tm_hour <= 8)
+                if(datetime.tm_hour>= 17 || datetime.tm_hour <= 8)
                 {
                     if(!havePushed)
                     {

@@ -32,13 +32,14 @@ check a process running with a name: pgrep -a name *not the best!
 
 */
 WaterTank tank; 
-
+CameraManager cam_manager;
 
 int main()
 {
 
     //O_CREAT - creates a file not the directory - if doens't exist open() creases
     
+    cam_manager.setup();
 
     /*
     int err = tank.setup();
@@ -55,7 +56,7 @@ int main()
     while(1)
     {   
         //tank.read_sensors();
-        //update_CamState();
+        cam_manager.update();
         //tank.update_state();
     }
     //tank.release_gpio();
