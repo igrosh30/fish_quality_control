@@ -1,8 +1,5 @@
 #include "CameraManager.hpp"
 
-/*
-camera_values cam = { camera_state::IDLE, -1, clk::now(),fd};
-*/
 void CameraManager::setup()
 {
     this->fd = open(cam_log_file.c_str(),O_CREAT | O_APPEND|O_WRONLY, 0644);//cam_log_file defined Config.h

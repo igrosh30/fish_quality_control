@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <chrono>
+#include <sys/wait.h>
 #include <gpiod.h>
 #include <ctime>
 #include <chrono>

@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <chrono>
 #include "Config.h"
+#include <cstring>
+
 
 //--------TIMEOUT VAR------------------
 using clk = std::chrono::steady_clock;
