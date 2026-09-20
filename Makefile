@@ -43,7 +43,9 @@ IC_LIBS   := -lsl_zed -lcudart
 
 # ---- supervisor --------------------------------------------
 SV_BIN    := supervisor/supervisor
-SV_SRC    := supervisor/src/main.cpp
+SV_SRC    := supervisor/src/main.cpp \
+		     supervisor/src/CameraManager.cpp \
+			 supervisor/src/WaterTank.cpp
 SV_INC    := -Isupervisor/include
 SV_LIBS   := -lgpiod 
 
