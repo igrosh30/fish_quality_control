@@ -55,7 +55,7 @@ int main()
     while(1)
     {   
         //tank.read_sensors();
-        update_CamState(cam);
+        //update_CamState();
         //tank.update_state();
     }
     //tank.release_gpio();
