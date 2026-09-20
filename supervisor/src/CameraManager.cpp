@@ -17,9 +17,11 @@ void CameraManager::update()
 {
     switch(this->current_cam_state)
     {
+        int st;
+        int ret;
         case camera_state::IDLE:
             
-            if(clk::now()- this->anchor_cam >= std::chrono::milliseconds(cam_timeout) )
+            if(clk::now()- this->anchor_cam >= std::chrono::milliseconds(cam_timeout))
             {
                 time_t timestamp = time(&timestamp);
                 struct tm datetime = *localtime(&timestamp);
@@ -42,8 +44,8 @@ void CameraManager::update()
             }
             break;
         case camera_state::CAPTURE:
-            int st;
-            int ret =waitpid(this->pid_cap,&st, WNOHANG); 
+            
+            ret =waitpid(this->pid_cap,&st, WNOHANG); 
             if(ret == 0) return; if(ret == -1) return; 
             
             write_logStatus(st,this->fd);//ALWAYS BEFORE CHANGING STATE
@@ -56,8 +58,7 @@ void CameraManager::update()
             /*
             if it's time to start taking fotos again -> Manager needs to signal to the push()
             */
-            int st;
-            int ret = waitpid(this->pid_push,&st,WNOHANG);
+            ret = waitpid(this->pid_push,&st,WNOHANG);
             if(ret == 0) return; if(ret == -1) return;
 
             write_logStatus(st,this->fd);
