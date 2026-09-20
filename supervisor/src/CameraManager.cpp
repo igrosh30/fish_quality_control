@@ -1,5 +1,7 @@
 #include "CameraManager.hpp"
 
+static const char* cam_result_str(uint8_t code);
+
 void CameraManager::setup()
 {
     this->fd = open(cam_log_file.c_str(),O_CREAT | O_APPEND|O_WRONLY, 0644);//cam_log_file defined Config.h
@@ -171,8 +173,8 @@ void CameraManager::write_logStatus(int st, int fd)
     }
 }
     
-    static const char* cam_result_str(uint8_t code)
-    {
+static const char* cam_result_str(uint8_t code)
+{
     switch (static_cast<CamResult>(code))
     {
         case CamResult::SUCCESS:      return "SUCCESS";
