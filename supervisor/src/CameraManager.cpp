@@ -25,12 +25,18 @@ void CameraManager::update()
             {
                 time_t timestamp = time(&timestamp);
                 struct tm datetime = *localtime(&timestamp);
-                if(datetime.tm_hour>= 17 || datetime.tm_hour <= 8)
+                if(datetime.tm_hour>= 20 || datetime.tm_hour <= 8)
                 {
                     if(!havePushed)
                     {
-                        this->current_cam_state= camera_state::PUSH_IMG;
                         this->pid_push = push_fork(captures);// I can pass the total 
+                        if(this->pid_push > 0)
+                            this->current_cam_state= camera_state::PUSH_IMG;
+                        else
+                        {
+                            this->anchor_cam = clk::now();    
+                            std::cout<<"error calling push fork"<<std::endl;
+                        }
                     }
                     else//nothing to push
                         this->anchor_cam = clk::now();
@@ -38,15 +44,22 @@ void CameraManager::update()
                 }
                 else
                 {
-                    this->current_cam_state= camera_state::CAPTURE;
                     this->pid_cap= camera_fork();
+                    if(this->pid_cap > 0)
+                        this->current_cam_state= camera_state::CAPTURE;
+                    else 
+                    {
+                        this->anchor_cam = clk::now();
+                        std::cout<<"error callin Cam fork!"<<std::endl;
+                    }
                 }
             }
             break;
         case camera_state::CAPTURE:
             
             ret =waitpid(this->pid_cap,&st, WNOHANG); 
-            if(ret == 0) return; if(ret == -1) return; 
+            if(ret == 0) return;
+            if(ret == -1) return; 
             
             write_logStatus(st,this->fd);//ALWAYS BEFORE CHANGING STATE
             
@@ -58,8 +71,10 @@ void CameraManager::update()
             /*
             if it's time to start taking fotos again -> Manager needs to signal to the push()
             */
+           
             ret = waitpid(this->pid_push,&st,WNOHANG);
-            if(ret == 0) return; if(ret == -1) return;
+            if(ret == 0) return;
+            if(ret == -1) return;
 
             write_logStatus(st,this->fd);
             /*
@@ -76,7 +91,7 @@ void CameraManager::update()
 pid_t CameraManager::camera_fork()
 {
     pid_t p_id = fork();
-    if(p_id)
+    if(p_id != 0)
         return p_id;
     
     char* argv_cam[] = { //THE PATH IS HARDCODED TO NAME MAHCINE!
@@ -94,7 +109,7 @@ pid_t CameraManager::camera_fork()
 pid_t CameraManager::push_fork(int num_captures)
 {
     pid_t p_id = fork();
-    if(p_id)
+    if(p_id != 0)
         return p_id;
 
     std::string n = std::to_string(num_captures);
