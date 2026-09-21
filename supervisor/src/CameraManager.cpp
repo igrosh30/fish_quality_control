@@ -27,7 +27,7 @@ void CameraManager::update()
                 struct tm datetime = *localtime(&timestamp);
                 if(datetime.tm_hour>= 21 || datetime.tm_hour <= 8)
                 {
-                    if(!havePushed)
+                    if(!havePushed || captures > 0 ) // we will push until don't have more to!
                     {
                         this->pid_push = push_fork(captures);// I can pass the total 
                         if(this->pid_push > 0)
