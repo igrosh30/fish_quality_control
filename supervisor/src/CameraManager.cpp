@@ -25,7 +25,7 @@ void CameraManager::update()
             {
                 time_t timestamp = time(&timestamp);
                 struct tm datetime = *localtime(&timestamp);
-                if(datetime.tm_hour>= 20 || datetime.tm_hour <= 8)
+                if(datetime.tm_hour>= 21 || datetime.tm_hour <= 8)
                 {
                     if(!havePushed)
                     {
@@ -63,7 +63,7 @@ void CameraManager::update()
             
             write_logStatus(st,this->fd);//ALWAYS BEFORE CHANGING STATE
             
-            this->captures +=2;//
+            this->captures +=2;//if all ok!
             havePushed= false;
             this->current_cam_state = camera_state::IDLE;
             this->anchor_cam = clk::now();
