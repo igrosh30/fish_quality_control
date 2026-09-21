@@ -63,6 +63,7 @@ void CameraManager::update()
             
             write_logStatus(st,this->fd);//ALWAYS BEFORE CHANGING STATE
             
+            this->captures +=2;//
             havePushed= false;
             this->current_cam_state = camera_state::IDLE;
             this->anchor_cam = clk::now();
@@ -76,6 +77,11 @@ void CameraManager::update()
             if(ret == 0) return;
             if(ret == -1) return;
 
+            if (WIFEXITED(st))
+            {
+                uint8_t code = WEXITSTATUS(st);
+                captures = captures-code;
+            }
             write_logStatus(st,this->fd);
             /*
             Reset parameters
