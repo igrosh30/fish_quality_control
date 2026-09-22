@@ -21,12 +21,16 @@ void CameraManager::update()
         int ret;
         case camera_state::IDLE:
             
-            if(clk::now()- this->anchor_cam >= std::chrono::milliseconds(cam_timeout))
+            if(clk::now()- this->anchor_cam >= std::chrono::milliseconds(cam_timeout)) //TIMEOUT
             {
+                
                 time_t timestamp = time(&timestamp);
                 struct tm datetime = *localtime(&timestamp);
                 if(datetime.tm_hour>= 21 || datetime.tm_hour <= 8)
                 {
+                    std::cout<<"Night Time..."<<std::endl;
+                    std::cout<<"Captures:"<<captures<<std::endl;
+                    //night 
                     if(!havePushed || captures > 0 ) // we will push until don't have more to!
                     {
                         this->pid_push = push_fork(captures);// I can pass the total 

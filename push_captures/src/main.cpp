@@ -11,7 +11,9 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
     int tot_push = argc >= 2 ? std::stoi(argv[1]) : 26; // see how many pictures we would take idealy in a day! 
     std::string path = argc >=3 ? argv[2] : pendig_def_path; 
     int tot_uploads = 0;
-    //std::cout<<"inside the main..."<<std::endl;
+    
+    std::cout<<"Parameters:"<<std::endl;
+    std::cout<<tot_push<<"--"<<pendig_def_path<<std::endl;
 
     fs::path upload_dir = fs::path(path).parent_path() / "uploaded";
     CURL *curl;
@@ -27,13 +29,17 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
         //set the URL that will receive the POST
         
         curl_easy_setopt(curl,CURLOPT_URL,"http://192.168.220.175:8000/push");//further need to understand how we'll reach the server - we do have VPN in the CIIMAR 
-
         curl_easy_setopt(curl,CURLOPT_VERBOSE,1L);
 
         for(const auto& entry: fs::directory_iterator(path))
         {
             if (!entry.is_regular_file()) continue;             
-            if (tot_push <= 0) break;
+            if (tot_push <= 0)
+            {
+                std::cout<<"tot_push < 0 {"<<tot_push<<"}"<<std::endl;
+                break;
+            }
+            
             const char* filepath = entry.path().c_str();
 
             curl_mime *mime= curl_mime_init(curl); //the body to send over HTTP
@@ -50,9 +56,15 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
             if (res == CURLE_OK && http_code == 201)
             {
+                std::cout<<"POST_OK"<<std::endl;
                 fs::rename(entry.path(), upload_dir / entry.path().filename());
                 tot_uploads++;
                 tot_push--;
+            }
+            else
+            {
+                //POST Error! 
+                std::cout<<"post error..."<<std::endl;
             }
             //need to rewrite that file to the /uploaded folder! 
             curl_mime_free(mime);
