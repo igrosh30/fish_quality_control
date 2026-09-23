@@ -14,6 +14,7 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
     path dir_path_pending  = argc >=3 ? argv[2] : pendig_def_path; 
     int tot_uploads = 0;
     
+    cout<<"received "<<tot_push<< " as the number of pictures to push"<<endl;
     //check dir to pending folder: I can also check the tot_push! 
     if(!exists(dir_path_pending) || !is_directory(dir_path_pending))
     {
@@ -43,11 +44,11 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
         {
             
             if (!entry.is_regular_file()) continue;             
-            // if (tot_push <= 0)
-            // {
-            //     std::cout<<"tot_push < 0 {"<<tot_push<<"}"<<std::endl;
-            //     break;
-            // }
+            if (tot_push <= 0)
+            {
+                std::cout<<"tot_push < 0 {"<<tot_push<<"}"<<std::endl;
+                break;
+            }
             
             const char* filepath = entry.path().c_str();
 

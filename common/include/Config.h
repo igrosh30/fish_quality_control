@@ -20,7 +20,7 @@ enum class CamResult : u_int8_t
 
 
 //Camera Parameters:
-const int num_def_cap = 4;
+const int num_def_cap = 2;
 /*Where we will store image_captures:*/
 const std::string pendig_def_path = "/home/ciimar/fish_quality_control/data/pending"; //CANNOT END IN /pending/ the / at the end will trow errors! 
 

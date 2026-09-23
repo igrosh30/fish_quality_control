@@ -24,11 +24,18 @@ Overwrite at the jetson:
 git fetch origin
 git reset --hard origin/main
 
+tmux new -s <name> 
 tmux attach -t fish 
 
 _PROCESS MANAGMENT_:
 Process tree: watch -n 0.5 'pstree -p $(pgrep -x supervisor)'
 check a process running with a name: pgrep -a name *not the best! 
+
+Python Sensor run code:
+/home/ciimar/fish_quality_control/env/bin/python3 \
+  /home/ciimar/fish_quality_control/sensor_capture/src/I4FSensReadRawData.py \
+  -c /home/ciimar/fish_quality_control/sensor_capture/config/sensors_config.json \
+  -o /home/ciimar/fish_quality_control/data/sensors
 
 */
 WaterTank tank; 
