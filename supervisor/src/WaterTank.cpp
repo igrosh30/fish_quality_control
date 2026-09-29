@@ -17,6 +17,7 @@ int WaterTank::setup_gpios()//WaterTank
 
     sensor_down.chip= gpiod_chip_open_by_name("gpiochip0");
     sensor_down.line= gpiod_chip_get_line(sensor_down.chip, sensor_down.offset);
+
     sensor_up.chip= gpiod_chip_open_by_name("gpiochip0");
     sensor_up.line= gpiod_chip_get_line(sensor_up.chip, sensor_up.offset);
 
@@ -27,8 +28,7 @@ int WaterTank::setup_gpios()//WaterTank
     valve.line= gpiod_chip_get_line(valve.chip, valve.offset);
 
 
-
-    /*FOR LOOP NOT NEDED...*/
+    /*FOR LOOP NOT NEDED...
     int status = 0;
     for(int i = 0; i< num_sensors; i++)
     {        
@@ -45,12 +45,14 @@ int WaterTank::setup_gpios()//WaterTank
         } //further check what value need to relays... 0/1 to activate?!!!!!
     }
     //if(!status) gpio_active = true;
-    return status;
+    */
+    return 0;
 }
 
 
 bool WaterTank::setup_env()
 {
+    /*
     switch (current_tank_state)
     {
     case tank_state::IDLE:
@@ -59,17 +61,19 @@ bool WaterTank::setup_env()
     
     default:
         break;
-    }   
+    } */
+   return ture;  
 }
 
 void WaterTank::read_sensors()
 {
+    /*
     for(int i = 0; i< this->num_sensors; i++)
     {
         int val = gpiod_line_get_value(this->sensors[i].line);
         if(val == -1) return;
         this->sensors[i].val = val;    
-    }
+    }*/
 }
 
 void WaterTank::set_actuator(gpio_ &actuator, int val)
@@ -79,7 +83,7 @@ void WaterTank::set_actuator(gpio_ &actuator, int val)
 
 void WaterTank::valveOFF()
 {
-    set_actuator()
+    
 }
 
 void WaterTank::valveON()
@@ -101,13 +105,14 @@ void WaterTank::pumpOFF()
 
 void WaterTank::release_gpio()
 {
+    /*x
     for(int i = 0; i< 2; i++)
     {
         gpiod_line_release(this->sensors[i].line);
         gpiod_line_release(this->actuators[i].line);
         gpiod_chip_close(this->sensors[i].chip);
         gpiod_chip_close(this->actuators[i].chip);
-    }
+    }*/
 }
 
 
@@ -116,6 +121,7 @@ void WaterTank::update_state()//needs access to sensors!
 {
     //define that sensors[0] - bottom one!
     //define that sensors[1] - upper one!
+    /*
     switch(this->current_tank_state)
     {
         case tank_state::IDLE:
@@ -168,7 +174,7 @@ void WaterTank::update_state()//needs access to sensors!
                 anchor_sens = clk::now();
             }
             break;
-    }   
+    } */  
 }
 
 

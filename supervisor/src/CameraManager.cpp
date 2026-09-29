@@ -84,7 +84,7 @@ void CameraManager::update()
             if (WIFEXITED(st))
             {
                 uint8_t code = WEXITSTATUS(st);
-                captures = captures-code;
+                captures = captures-code;            
             }
             write_logStatus(st,this->fd);
             /*

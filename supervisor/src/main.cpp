@@ -80,14 +80,14 @@ int main(int argc, char **argv)// 1 to capture at the instance 0- default
     */
 
 
-    /*try to add this in the setup!?*/
-    //tank.anchor_sens = clk::now();
+    /*try to add this in the setup!?
+    tank.anchor_sens = clk::now();
 
     while(tank.setup_env())
     {
 
     }
-
+    */
     while(1)
     {   
         //Add a constant loop running! 
