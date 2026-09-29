@@ -13,7 +13,7 @@ void CameraManager::setup()
 
     this->captures = this->count_pending(); // let's make this read the total number of files that we have!
 
-    std::cout<< "Ini with "<<captures<< "already to push"<<std::endl;
+    std::cout<< "Ini with "<< captures<< "already to push"<<std::endl;
 }
 
 void CameraManager::update()
@@ -215,12 +215,12 @@ static const char* cam_result_str(uint8_t code)
     }
 }
 
-int CameraManager:: count_pending()//set's tot_captures
+uint8_t CameraManager:: count_pending()//set's tot_captures
 {
     namespace fs = std::filesystem;
 
     std::error_code ec;
-    int count = 0;
+    uint8_t count = 0;
 
     fs::directory_iterator it(pendig_def_path, ec);
     if (ec)   // folder missing or unreadable

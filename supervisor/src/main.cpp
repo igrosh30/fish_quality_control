@@ -61,8 +61,7 @@ int main(int argc, char **argv)// 1 to capture at the instance 0- default
     uint8_t capture_atRunning = argc > 1 ? stoi(argv[1]) : 0;
 
     //O_CREAT - creates a file not the directory - if doens't exist open() creases
-   
-    
+       
     cam_manager.setup();
     if(capture_atRunning == 1)
     {
