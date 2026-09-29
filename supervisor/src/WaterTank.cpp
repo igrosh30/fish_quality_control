@@ -62,7 +62,7 @@ bool WaterTank::setup_env()
     default:
         break;
     } */
-   return ture;  
+   return true;  
 }
 
 void WaterTank::read_sensors()
