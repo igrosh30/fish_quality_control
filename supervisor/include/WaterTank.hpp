@@ -41,16 +41,26 @@ class WaterTank
         const int num_actuators = 2;
         gpio_ sensors[2];
         gpio_ actuators[2];
+        gpio_ sensor_up;
+        gpio_ sensor_down;
+        gpio_ pump;
+        gpio_ valve;
 
         tank_state current_tank_state;
         clk::time_point anchor_sens;
         pid_t sens_pid;
 
-        int setup();
+        int setup_gpios();
+        bool setup_env();
         void read_sensors();
         void set_actuator(gpio_ &actuator, int val);
         void release_gpio();
 
         void update_state();
         pid_t sensor_fork();
+
+        void pumpON();
+        void pumpOFF();
+        void valveON();
+        void valveOFF();
 };

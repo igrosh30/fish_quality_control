@@ -44,11 +44,12 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
         {
             
             if (!entry.is_regular_file()) continue;             
-            if (tot_push <= 0)
-            {
-                std::cout<<"tot_push < 0 {"<<tot_push<<"}"<<std::endl;
-                break;
-            }
+            //It needs to drain the file! - imagine that we have a huge data - need to go over it
+            // if (tot_push <= 0)
+            // {
+            //     std::cout<<"tot_push < 0 {"<<tot_push<<"}"<<std::endl;
+            //     break;
+            // }
             
             const char* filepath = entry.path().c_str();
 
