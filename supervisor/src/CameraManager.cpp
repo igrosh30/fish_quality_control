@@ -13,7 +13,7 @@ void CameraManager::setup()
 
     this->captures = this->count_pending(); // let's make this read the total number of files that we have!
 
-    std::cout<< "Ini with "<< captures<< "already to push"<<std::endl;
+    std::cout<< "Ini with "<< int(captures)<< "already to push"<<std::endl;
 }
 
 void CameraManager::update()
