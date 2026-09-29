@@ -9,8 +9,11 @@ void CameraManager::setup()
     this->pid_cap = -1;
     this->pid_push = -1;
     this->anchor_cam = clk::now();
-    this->captures = 0;
     this->havePushed = false;
+
+    this->captures = this->count_pending(); // let's make this read the total number of files that we have!
+
+    std::cout<< "Ini with "<<captures<< "already to push"<<std::endl;
 }
 
 void CameraManager::update()
@@ -210,4 +213,28 @@ static const char* cam_result_str(uint8_t code)
         case CamResult::KILLED:       return "KILLED";
         default:                      return "UNKNOWN";
     }
+}
+
+int CameraManager:: count_pending()//set's tot_captures
+{
+    namespace fs = std::filesystem;
+
+    std::error_code ec;
+    int count = 0;
+
+    fs::directory_iterator it(pendig_def_path, ec);
+    if (ec)   // folder missing or unreadable
+    {
+        std::cout << "count_pending: cannot open " << pendig_def_path
+                  << " (" << ec.message() << "), assuming 0" << std::endl;
+        return 0;
+    }
+
+    for (const auto& entry : it)
+    {
+        if (!entry.is_regular_file()) continue;
+        if (entry.path().extension() == ".png")   // includes the dot
+            count++;
+    }
+    return count;
 }

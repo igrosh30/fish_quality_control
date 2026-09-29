@@ -29,6 +29,7 @@ tmux new -s <name>
 tmux attach -t fish 
 
 New way is the own systemd is running the code and not we inside a terminal processor!
+
 systemctl status fish        # full picture: running? since when? memory, CPU, last log lines
 systemctl is-active fish     # one word: active / failed — fast yes-no
 systemctl is-enabled fish    # enabled / disabled — will it survive a reboot?

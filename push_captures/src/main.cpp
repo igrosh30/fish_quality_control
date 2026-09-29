@@ -40,7 +40,7 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
         curl_easy_setopt(curl,CURLOPT_URL,"http://192.168.220.175:8000/push");//further need to understand how we'll reach the server - we do have VPN in the CIIMAR 
         curl_easy_setopt(curl,CURLOPT_VERBOSE,1L);
 
-        for(const auto& entry: directory_iterator(dir_path_pending))
+        for(const auto& entry: directory_iterator(dir_path_pending))//->C++17!
         {
             
             if (!entry.is_regular_file()) continue;             

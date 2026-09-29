@@ -43,6 +43,7 @@ class CameraManager
 
     public:
     void setup();
+    int count_pending();//aux method to count tot captures@ini
     pid_t camera_fork();
     pid_t push_fork(int num_captures);
     void update();
