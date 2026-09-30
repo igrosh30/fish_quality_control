@@ -5,97 +5,92 @@ static const char* cam_result_str(uint8_t code);
 void CameraManager::setup()
 {
     this->fd = open(cam_log_file.c_str(),O_CREAT | O_APPEND|O_WRONLY, 0644);//cam_log_file defined Config.h
-    this->current_cam_state= camera_state::IDLE;
     this->pid_cap = -1;
     this->pid_push = -1;
-    this->anchor_cam = clk::now();
-    this->havePushed = false;
+    this->push_finished = false;
 
     this->captures = this->count_pending(); // let's make this read the total number of files that we have!
-
-    std::cout<< "Ini with "<< int(captures)<< "already to push"<<std::endl;
+    std::cout<< "Ini with "<< captures<< "already to push"<<std::endl;
+    this->set_next_state(cam_manager_state::IDLE);
 }
 
 void CameraManager::update()
 {
-    switch(this->current_cam_state)
+    switch(this->current_state)
     {
         int st;
         int ret;
-        case camera_state::IDLE:
-            
-            if(clk::now()- this->anchor_cam >= std::chrono::milliseconds(cam_timeout)) //TIMEOUT
-            {
-                
-                time_t timestamp = time(&timestamp);
-                struct tm datetime = *localtime(&timestamp);
-                if(datetime.tm_hour>= 21 || datetime.tm_hour <= 8)
+        case cam_manager_state::IDLE:            
+            if(time_in_state() >= std::chrono::hours(cam_timeout)) //TIMEOUT
+            {                
+                if(is_nightTime())
                 {
-                    std::cout<<"Night Time..."<<std::endl;
-                    std::cout<<"Captures:"<<captures<<std::endl;
-                    //night 
-                    if(!havePushed || captures > 0 ) // we will push until don't have more to!
+                    if(!push_finished)//Push finish has the captures side in it!
                     {
-                        this->pid_push = push_fork(captures);// I can pass the total 
+                        this->pid_push = push_fork(count_pending());
                         if(this->pid_push > 0)
-                            this->current_cam_state= camera_state::PUSH_IMG;
+                            set_next_state(cam_manager_state::PUSH_IMG);
                         else
                         {
-                            this->anchor_cam = clk::now();    
-                            std::cout<<"error calling push fork"<<std::endl;
+                            set_next_state(cam_manager_state::IDLE);
+                            write_logMsg("push_fork(): 'fork() error | pid_push < 0'",this->fd);
                         }
                     }
-                    else//nothing to push
-                        this->anchor_cam = clk::now();
+                    else
+                        set_next_state(cam_manager_state::IDLE);
                     
                 }
-                else
+                else //DayTime
                 {
                     this->pid_cap= camera_fork();
                     if(this->pid_cap > 0)
-                        this->current_cam_state= camera_state::CAPTURE;
-                    else 
+                        set_next_state(cam_manager_state::CAPTURE);
+                    else
                     {
-                        this->anchor_cam = clk::now();
-                        std::cout<<"error callin Cam fork!"<<std::endl;
+                        set_next_state(cam_manager_state::IDLE);
+                        write_logMsg("camera_fork(): 'fork() error | pid_push < 0'",this->fd);
                     }
                 }
             }
             break;
-        case camera_state::CAPTURE:
-            
+        case cam_manager_state::CAPTURE:
+            //we can add a timeout for the CAPTURE running state...
             ret =waitpid(this->pid_cap,&st, WNOHANG); 
             if(ret == 0) return;
-            if(ret == -1) return; 
-            
-            write_logStatus(st,this->fd);//ALWAYS BEFORE CHANGING STATE
-            
-            this->captures +=2;//if all ok!
-            havePushed= false;
-            this->current_cam_state = camera_state::IDLE;
-            this->anchor_cam = clk::now();
-            break;
-        case camera_state::PUSH_IMG:
-            /*
-            if it's time to start taking fotos again -> Manager needs to signal to the push()
-            */
-           
-            ret = waitpid(this->pid_push,&st,WNOHANG);
-            if(ret == 0) return;
             if(ret == -1) return;
-
-            if (WIFEXITED(st))
+            
+            this->write_logStatus(st,this->fd);//ALWAYS BEFORE CHANGING STATE
+            this->process_return_captureFork(st);
+            this->set_next_state(cam_manager_state::IDLE);
+            break;
+        case cam_manager_state::PUSH_IMG:
+            if(time_in_state()>= std::chrono::minutes(30))
             {
-                uint8_t code = WEXITSTATUS(st);
-                captures = captures-code;            
+                ret =waitpid(this->pid_push,&st,WNOHANG);
+                if(ret==0)//pus_image haven't finished
+                {
+                    kill(this->pid_push, SIGTERM);
+                    this->set_next_state(cam_manager_state::PUSH_KILLING);
+                    return;
+                }
+                else if(ret == -1)
+                {
+                    this->write_logMsg("PUSH_IMG waitpid failed: ret==-1 ",this->fd);
+                    this->set_next_state(cam_manager_state::IDLE);
+                    return;
+                }
+
             }
-            write_logStatus(st,this->fd);
-            /*
-            Reset parameters
-            */
-            havePushed= true;
-            this->current_cam_state= camera_state::IDLE;
-            this->anchor_cam = clk::now();
+            else
+            {
+                ret = waitpid(this->pid_push,&st,WNOHANG);//NEED to add a TIMEOUT on waiting the 
+                if(ret == 0) return;//still runing
+                if(ret == -1) return;//error - we are not treating this...
+            }
+            //this will run if the child returned perfectly
+            this->write_logStatus(st,this->fd);
+            this->process_return_pushFork(st);
+            this->set_next_state(cam_manager_state::IDLE);//this->anchor_cam = clk::now();
     }
 }
 
@@ -139,6 +134,36 @@ pid_t CameraManager::push_fork(int num_captures)
     _exit(127);
 }
 
+void CameraManager::process_return_captureFork(int st)
+{
+    this->captures +=2;//if all ok!
+    push_finished= false;
+}
+
+void CameraManager::process_return_pushFork(int st)
+{
+    if (WIFEXITED(st))
+    {
+        uint8_t code = WEXITSTATUS(st);
+        const char* status = push_result_str(code);
+
+        if(status == "SUCCESS")//all the pictures asked where stored correctly
+        {
+            push_finished= true;
+            captures = 0;
+        }
+        else if(status == "INCOMPLETE" || status == "TIMEOUT") 
+        {
+            //HOW can we FLAG THIS?! -> it will retry in the next hour
+            push_finished= count_pending() > 0 ? false:true;
+        }
+        else if(status == "SERVER_OFF" || status == "EXEC_FAILED")
+        {
+            //SEND A PROBLEM!!!
+        }   
+    }
+}
+
 void CameraManager::write_logStatus(int st, int fd)
 {
     if (fd < 0) { perror("open log"); return; }
@@ -159,7 +184,7 @@ void CameraManager::write_logStatus(int st, int fd)
         snprintf(notes, sizeof(notes), "signal=%d", WTERMSIG(st));
     }
 
-    if (this->current_cam_state == camera_state::CAPTURE)
+    if (this->current_state == cam_manager_state::CAPTURE)
     {
         event = "CAPTURE";
         if (WIFEXITED(st))
@@ -170,19 +195,13 @@ void CameraManager::write_logStatus(int st, int fd)
                 number = FRAMES_REQUESTED;
         }
     }
-    else if (this->current_cam_state == camera_state::PUSH_IMG)
+    else if (this->current_state == cam_manager_state::PUSH_IMG)
     {
         event = "PUSH";
         if (WIFEXITED(st))
         {
             uint8_t code = WEXITSTATUS(st);
-            if (code == 127)              // execv sentinel, not an error count
-                status = "EXEC_FAILED";
-            else
-            {
-                number = code;            // number of images that failed to push
-                status = code ? "PUSH_ERRORS" : "OK";
-            }
+            status = push_result_str(code);
         }
     }
 
@@ -195,27 +214,21 @@ void CameraManager::write_logStatus(int st, int fd)
     if (write(fd, buf, len) < 0) perror("write log");
 
     // day separator: the push is the last event of the day
-    if (this->current_cam_state == camera_state::PUSH_IMG)
+    if (this->current_state == cam_manager_state::PUSH_IMG)
     {
         const char* sep = "--------------------------------------------------\n";
         if (write(fd, sep, strlen(sep)) < 0) perror("write sep");
     }
 }
-    
-static const char* cam_result_str(uint8_t code)
+
+void CameraManager::write_logMsg(const char* msg, int fd)
 {
-    switch (static_cast<CamResult>(code))
-    {
-        case CamResult::SUCCESS:      return "SUCCESS";
-        case CamResult::CAMERA_INIT:  return "CAMERA_INIT";
-        case CamResult::CAPTURE_FAIL: return "CAPTURE_FAIL";
-        case CamResult::EXEC_FAILED:  return "EXEC_FAILED";
-        case CamResult::KILLED:       return "KILLED";
-        default:                      return "UNKNOWN";
-    }
+    if (fd < 0) { perror("open log"); return; }
+    if(write(fd, msg, strlen(msg))<0) perror("write log");
 }
 
-uint8_t CameraManager:: count_pending()//set's tot_captures
+
+int CameraManager:: count_pending()//set's tot_captures
 {
     namespace fs = std::filesystem;
 
@@ -237,4 +250,24 @@ uint8_t CameraManager:: count_pending()//set's tot_captures
             count++;
     }
     return count;
+}
+
+
+//---FSM HELPERS---//
+void CameraManager::set_next_state(cam_manager_state s) {            // single choke point for transitions
+    if (s != current_state) {                       // only reset on a real change
+        current_state = s;
+        state_entry = clk::now();
+    }
+}
+
+clk::duration CameraManager::time_in_state() const {
+    return clk::now() - state_entry;
+}
+
+bool CameraManager::is_nightTime() const
+{
+    time_t now = time(nullptr);
+    struct tm datetime = *localtime(&now);
+    return datetime.tm_hour >= 21 || datetime.tm_hour <= 7; //21h to 7h: Night Time
 }

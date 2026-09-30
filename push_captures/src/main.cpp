@@ -10,17 +10,18 @@ using namespace std::filesystem;
 int main(int argc, char **argv) //does the supervisor passes the path to where the captures where stored- is it fixed!!
 {
     //"/Users/igor/Documents/ciimar/code/fish_quality_control/data/pending" - for computer testing
-    int tot_push = argc >= 2 ? std::stoi(argv[1]) : 26; // see how many pictures we would take idealy in a day! 
+    int asked2push = argc >= 2 ? std::stoi(argv[1]) : 26; // see how many pictures we would take idealy in a day! 
     path dir_path_pending  = argc >=3 ? argv[2] : pendig_def_path; 
     int tot_uploads = 0;
     
-    cout<<"received "<<tot_push<< " as the number of pictures to push"<<endl;
+    
+    cout<<"received "<<asked2push<< " as the number of pictures to push"<<endl;
     //check dir to pending folder: I can also check the tot_push! 
     if(!exists(dir_path_pending) || !is_directory(dir_path_pending))
     {
         //trow error that file doesn't exist! 
         cout<<"path: " <<dir_path_pending<< " doesn't exist!"<<endl;
-        return 1;
+        return static_cast<int>(PushResult::FOLDER_OFF);//the code for the path passed doesn't exist! 
     }
 
     path dir_path_uploaded = dir_path_pending.parent_path() / "uploaded";
@@ -29,7 +30,7 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
     CURLcode res;
     res =curl_global_init(CURL_GLOBAL_ALL);
     if(res!= CURLE_OK)
-        return int(res);
+        return static_cast<int>(PushResult::SERVER_OFF);//see the right error code for this!
 
     //creates an handle for a transfer
     curl = curl_easy_init();
@@ -41,15 +42,14 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
         curl_easy_setopt(curl,CURLOPT_VERBOSE,1L);
 
         for(const auto& entry: directory_iterator(dir_path_pending))//->C++17!
-        {
-            
+        { 
             if (!entry.is_regular_file()) continue;             
             //It needs to drain the file! - imagine that we have a huge data - need to go over it
-            if (tot_push <= 0)
-            {
-                std::cout<<"tot_push < 0 {"<<tot_push<<"}"<<std::endl;
-                break;
-            }
+            // if (tot_push <= 0)
+            // {
+            //     std::cout<<"tot_push < 0 {"<<tot_push<<"}"<<std::endl;
+            //     break;
+            // }
             
             const char* filepath = entry.path().c_str();
 
@@ -70,20 +70,20 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
                 std::cout<<"POST_OK"<<std::endl;
                 rename(entry.path(), dir_path_uploaded / entry.path().filename());
                 tot_uploads++;
-                tot_push--;
-            }
-            else
-            {
-                //POST Error! 
-                std::cout<<"post error..."<<std::endl;
             }
             //need to rewrite that file to the /uploaded folder! 
             curl_mime_free(mime);
         }
         curl_easy_cleanup(curl);
     }
+    else{
+        //Pass the code for this error!
+        //return  static_cast<int>(PushResult::SERVER_OFF);?
+    }
         
     curl_global_cleanup();
 
-    return tot_uploads;
+    //check the problems here!
+    if(asked2push == tot_uploads) return static_cast<int>(PushResult::SUCCESS);
+    else return static_cast<int>(PushResult::INCOMPLETE);
 }
