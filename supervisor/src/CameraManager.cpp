@@ -154,13 +154,20 @@ void CameraManager::process_return_pushFork(int st)
             push_finished= true;
             captures = 0;
         }
-        else if(strcmp(status, "INCOMPLETE") == 0 ||strcmp(status, "INCOMPLETE") == 0) 
+        else if(strcmp(status, "INCOMPLETE") == 0) 
         {
             //HOW can we FLAG THIS?! -> it will retry in the next hour
             push_finished= count_pending() > 0 ? false:true;
         }
-        else if(strcmp(status, "SERVER_OFF") == 0  || strcmp(status, "EXEC_FAILED") == 0)
+        else if(strcmp(status,"SERVER_OFF") == 0)
         {
+            //SERVER off - send Notification! 
+            this->write_logMsg("push_fork return: 'SERVER OFF'",this->fd);
+            push_finished=true;
+        }
+        else if( strcmp(status, "EXEC_FAILED") == 0)
+        {
+            this->write_logMsg("push_fork return: 'EXEC_FAILED'",this->fd);
             //SEND A PROBLEM!!!
         }   
     }
