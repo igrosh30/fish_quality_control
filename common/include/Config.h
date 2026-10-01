@@ -20,13 +20,16 @@ enum class CamResult : u_int8_t
 
 enum class PushResult : uint8_t
 {
-    SUCCESS         =0,
-    INCOMPLETE      =1,
-    TIMEOUT         =2,
-    SERVER_OFF      =3,
-    FOLDER_OFF      =4,
-    EXEC_FAILED     =127,
-    KILLED          =200,
+    SUCCESS             =0,
+    INCOMPLETE          =1,
+    TIMEOUT             =2,
+    SERVER_OFF          =3,
+    FOLDER_OFF          =4,
+    //---CURL ERRRORS----(10-19)
+    LOAD_CULR_FAILED    =10,
+    CURL_INIT_FAILED    =11,
+    EXEC_FAILED         =127,
+    KILLED              =200,
 
 };
 
@@ -48,14 +51,16 @@ static const char* push_result_str(uint8_t code)
 {
     switch (static_cast<PushResult>(code))
     {
-        case PushResult::SUCCESS:       return "SUCCESS";
-        case PushResult::INCOMPLETE:    return "INCOMPLETE";
-        case PushResult::TIMEOUT:       return "TIMEOUT";
-        case PushResult::SERVER_OFF:    return "SERVER_OFF";
-        case PushResult::EXEC_FAILED:   return "EXEC_FAILED";
-        case PushResult::KILLED:        return "KILLED";
-        case PushResult::FOLDER_OFF:    return "FOLDER_OFF";
-        default:                      return "UNKNOWN";
+        case PushResult::SUCCESS:           return "SUCCESS";
+        case PushResult::INCOMPLETE:        return "INCOMPLETE";
+        case PushResult::TIMEOUT:           return "TIMEOUT";
+        case PushResult::SERVER_OFF:        return "SERVER_OFF";
+        case PushResult::EXEC_FAILED:       return "EXEC_FAILED";
+        case PushResult::KILLED:            return "KILLED";
+        case PushResult::FOLDER_OFF:        return "FOLDER_OFF";
+        case PushResult::LOAD_CULR_FAILED:  return "LOAD_CULR_FAILED";
+        case PushResult::CURL_INIT_FAILED:  return "CURL_INIT_FAILED";
+        default:                            return "UNKNOWN";
     }
 }
 

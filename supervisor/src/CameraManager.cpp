@@ -69,8 +69,8 @@ void CameraManager::update()
                 ret =waitpid(this->pid_push,&st,WNOHANG);
                 if(ret==0)//pus_image haven't finished
                 {
-                    /*
-                    kill(this->pid_push, SIGTERM);*/
+
+                    kill(this->pid_push, SIGTERM);
                     this->set_next_state(cam_manager_state::PUSH_KILLING);
                     this->write_logMsg("PUSH_KILL STATE... ",this->fd);
                     return;
@@ -149,17 +149,17 @@ void CameraManager::process_return_pushFork(int st)
         uint8_t code = WEXITSTATUS(st);
         const char* status = push_result_str(code);
 
-        if(status == "SUCCESS")//all the pictures asked where stored correctly
+        if(strcmp(status, "SUCCESS") == 0)//all the pictures asked where stored correctly
         {
             push_finished= true;
             captures = 0;
         }
-        else if(status == "INCOMPLETE" || status == "TIMEOUT") 
+        else if(strcmp(status, "INCOMPLETE") == 0 ||strcmp(status, "INCOMPLETE") == 0) 
         {
             //HOW can we FLAG THIS?! -> it will retry in the next hour
             push_finished= count_pending() > 0 ? false:true;
         }
-        else if(status == "SERVER_OFF" || status == "EXEC_FAILED")
+        else if(strcmp(status, "SERVER_OFF") == 0  || strcmp(status, "EXEC_FAILED") == 0)
         {
             //SEND A PROBLEM!!!
         }   

@@ -4,14 +4,54 @@
 #include <curl/curl.h>
 #include <filesystem>
 #include <fstream>
+//#include <CameraManager.hpp>//need to specify 
+#include "Config.h"
 
 using namespace std;
 using namespace std::filesystem;
+//CameraManager cam_manager;
 
 int main(int argc, char **argv) //does the supervisor passes the path to where the captures where stored- is it fixed!!
 {
     //"/Users/igor/Documents/ciimar/code/fish_quality_control/data/pending" - for computer testing
-    int tot_push = argc >= 2 ? std::stoi(argv[1]) : 26; // see how many pictures we would take idealy in a day! 
+    int code = argc>1 ? stoi(argv[1]): 0;
+    const char* status = push_result_str(code);
+    
+    if(strcmp(status, "SUCCESS") == 0)//all the pictures asked where stored correctly
+    {
+        std::cout<<"Sucess status"<<std::endl;
+    }
+    else if(status == "INCOMPLETE" || status == "TIMEOUT") 
+    {
+        std::cout<<"Incomplete or Timeout"<<std::endl;
+    }
+    else if(status == "SERVER_OFF" || status == "EXEC_FAILED")
+    {
+        std::cout<<"Server off or exc_failded"<<std::endl;
+    }   
+    else if(status =="UNKNOWN")
+    {
+        std::cout<<"UNKNOWN code..."<<std::endl;
+    }
+    
+    
+    return 0;
+}
+
+
+
+/*
+ time_t timestamp =time(&timestamp); ;// -we need to convert this to a struct 
+    
+    //The localtime() function returns a pointer to a structure representing the time in the computer's time zone.
+    struct tm datetime = *localtime(&timestamp);
+    
+    cout << datetime.tm_hour<< endl;
+
+    if(datetime.tm_hour > 19)
+        cout<< "time to go to bed"<<endl;
+
+        int tot_push = argc >= 2 ? std::stoi(argv[1]) : 26; // see how many pictures we would take idealy in a day! 
     path dir_pending_path = argc >=3 ? argv[2] : "/Users/igor/Documents/ciimar/code/fish_quality_control/data/pending" ; 
     int tot_uploads = 0;
 
@@ -51,8 +91,7 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
     {
         cout<<"not a valid dir path!"<<endl;
     }
-    
-    /*
+
     CURL *curl;
     CURLcode res;
     res =curl_global_init(CURL_GLOBAL_ALL);
@@ -110,21 +149,4 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
         curl_easy_cleanup(curl);
     }
         
-    curl_global_cleanup();
-    */
-    return 0;
-}
-
-
-
-/*
- time_t timestamp =time(&timestamp); ;// -we need to convert this to a struct 
-    
-    //The localtime() function returns a pointer to a structure representing the time in the computer's time zone.
-    struct tm datetime = *localtime(&timestamp);
-    
-    cout << datetime.tm_hour<< endl;
-
-    if(datetime.tm_hour > 19)
-        cout<< "time to go to bed"<<endl;
-*/
+    curl_global_cleanup();*/

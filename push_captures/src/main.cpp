@@ -13,6 +13,8 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
     int asked2push = argc >= 2 ? std::stoi(argv[1]) : 26; // see how many pictures we would take idealy in a day! 
     path dir_path_pending  = argc >=3 ? argv[2] : pendig_def_path; 
     int tot_uploads = 0;
+    int attempted     = 0;   // regular files we actually tried
+    int connect_fails = 0;   // transport-level failures (never reached the server)
     
     
     cout<<"received "<<asked2push<< " as the number of pictures to push"<<endl;
@@ -30,7 +32,7 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
     CURLcode res;
     res =curl_global_init(CURL_GLOBAL_ALL);
     if(res!= CURLE_OK)
-        return static_cast<int>(PushResult::SERVER_OFF);//see the right error code for this!
+        return static_cast<int>(PushResult::LOAD_CULR_FAILED);//see the right error code for this!
 
     //creates an handle for a transfer
     curl = curl_easy_init();
@@ -40,10 +42,12 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
         
         curl_easy_setopt(curl,CURLOPT_URL,"http://192.168.220.175:8000/push");//further need to understand how we'll reach the server - we do have VPN in the CIIMAR 
         curl_easy_setopt(curl,CURLOPT_VERBOSE,1L);
+        curl_easy_setopt(curl,CURLOPT_CONNECTTIMEOUT,5L); // fail fast if the host is dead (LAN; tune this)
 
         for(const auto& entry: directory_iterator(dir_path_pending))//->C++17!
         { 
-            if (!entry.is_regular_file()) continue;             
+            if (!entry.is_regular_file()) continue;          
+            attempted++;   
             //It needs to drain the file! - imagine that we have a huge data - need to go over it
             // if (tot_push <= 0)
             // {
@@ -71,6 +75,13 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
                 rename(entry.path(), dir_path_uploaded / entry.path().filename());
                 tot_uploads++;
             }
+            else if (res == CURLE_COULDNT_CONNECT  || res == CURLE_COULDNT_RESOLVE_HOST ||
+                     res == CURLE_OPERATION_TIMEDOUT)
+            {
+                connect_fails++; // never reached the server
+            }
+            
+
             //need to rewrite that file to the /uploaded folder! 
             curl_mime_free(mime);
         }
@@ -78,12 +89,17 @@ int main(int argc, char **argv) //does the supervisor passes the path to where t
     }
     else{
         //Pass the code for this error!
-        //return  static_cast<int>(PushResult::SERVER_OFF);?
+        return static_cast<int>(PushResult::CURL_INIT_FAILED);
     }
         
     curl_global_cleanup();
 
     //check the problems here!
-    if(asked2push == tot_uploads) return static_cast<int>(PushResult::SUCCESS);
-    else return static_cast<int>(PushResult::INCOMPLETE);
+    if (attempted > 0 && tot_uploads == 0 && connect_fails == attempted)
+        return static_cast<int>(PushResult::SERVER_OFF);
+    
+    if (tot_uploads == attempted)
+        return static_cast<int>(PushResult::SUCCESS);
+
+    return static_cast<int>(PushResult::INCOMPLETE);
 }
