@@ -69,8 +69,10 @@ void CameraManager::update()
                 ret =waitpid(this->pid_push,&st,WNOHANG);
                 if(ret==0)//pus_image haven't finished
                 {
-                    kill(this->pid_push, SIGTERM);
+                    /*
+                    kill(this->pid_push, SIGTERM);*/
                     this->set_next_state(cam_manager_state::PUSH_KILLING);
+                    this->write_logMsg("PUSH_KILL STATE... ",this->fd);
                     return;
                 }
                 else if(ret == -1)
