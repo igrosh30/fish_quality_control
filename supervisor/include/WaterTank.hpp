@@ -28,6 +28,7 @@ struct gpio_
     int offset;
     int flag;
     int val;
+    bool enabled;
 };
 
 class WaterTank
@@ -37,6 +38,7 @@ class WaterTank
     public:
         const uint32_t sens_timeout = 120000; //1890000
         bool gpio_active = false;
+
         gpio_ sensor_up;
         gpio_ sensor_down;
         gpio_ pump;
@@ -57,6 +59,6 @@ class WaterTank
 
         void pumpON();
         void pumpOFF();
-        void valveON();
-        void valveOFF();
+        void open_valve();
+        void close_valve();
 };

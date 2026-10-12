@@ -1,5 +1,7 @@
-#include <WaterTank.hpp>
+#include "WaterTank.hpp"
 
+void init_gpios(gpio_ &gpio, int init_flag, bool is_sensor);
+void aux_release_gpio(gpio_ &gpio);
 int WaterTank::setup_gpios()//WaterTank
 {
     this->current_tank_state = tank_state::IDLE;
@@ -9,46 +11,24 @@ int WaterTank::setup_gpios()//WaterTank
     pump.offset = 106;
     valve.offset = 105;
     
-    // sensors[0].offset = 144; //pin 7
-    // sensors[1].offset = 43; //pin 33
+    init_gpios(sensor_down,GPIOD_LINE_REQUEST_FLAG_BIAS_PULL_DOWN,true);
+    init_gpios(sensor_up,GPIOD_LINE_REQUEST_FLAG_BIAS_PULL_DOWN,true);
 
-    // actuators[0].offset = 106;//pin 31 - relayA - pump 
-    // actuators[1].offset = 105;//pin 29 - relayB - valve 
-
-    sensor_down.chip= gpiod_chip_open_by_name("gpiochip0");
-    sensor_down.line= gpiod_chip_get_line(sensor_down.chip, sensor_down.offset);
-
-    sensor_up.chip= gpiod_chip_open_by_name("gpiochip0");
-    sensor_up.line= gpiod_chip_get_line(sensor_up.chip, sensor_up.offset);
-
-    pump.chip= gpiod_chip_open_by_name("gpiochip0");
-    pump.line= gpiod_chip_get_line(pump.chip, pump.offset);
-
-    valve.chip = gpiod_chip_open_by_name("gpiochip0");
-    valve.line= gpiod_chip_get_line(valve.chip, valve.offset);
-
-
-    /*FOR LOOP NOT NEDED...
-    int status = 0;
-    for(int i = 0; i< num_sensors; i++)
-    {        
-        if(gpiod_line_request_input_flags(sensors[i].line,"input",GPIOD_LINE_REQUEST_FLAG_BIAS_PULL_DOWN)) // GPIOD_LINE_REQUEST_FLAG_BIAS_PULL_DOWN arcodede for both sensors!
-        {        
-            std::cout << "eerror requesting gpio.... RUNING WITH TIMEOUTS!"<<endl;
-            status++;
-        } 
-        //Actuators
-        if(gpiod_line_request_output(actuators[i].line,"output", 0))
-        {
-            std::cout << "eerror requesting gpio.... RUNING WITH TIMEOUTS!"<<endl;
-            status += 10;
-        } //further check what value need to relays... 0/1 to activate?!!!!!
-    }
-    //if(!status) gpio_active = true;
-    */
+    init_gpios(pump,0,false);
+    init_gpios(valve,0,false);
     return 0;
 }
 
+void init_gpios(gpio_ &gpio, int init_flag, bool is_sensor)
+{
+    gpio.chip= gpiod_chip_open_by_name("gpiochip0");
+    gpio.line= gpiod_chip_get_line(gpio.chip, gpio.offset);
+    
+    if(is_sensor)
+        gpio.enabled = (gpiod_line_request_input_flags(gpio.line,"input",init_flag) == 0 );
+    else
+        gpio.enabled = (gpiod_line_request_output(gpio.line,"output",0) == 0);
+}
 
 bool WaterTank::setup_env()
 {
@@ -67,13 +47,12 @@ bool WaterTank::setup_env()
 
 void WaterTank::read_sensors()
 {
-    /*
-    for(int i = 0; i< this->num_sensors; i++)
+    this->sensor_up.val     =  gpiod_line_get_value(this->sensor_up.line);
+    this->sensor_down.val   = gpiod_line_get_value(this->sensor_down.line);
+    if(this->sensor_down.val == -1 || this->sensor_up.val == -1)
     {
-        int val = gpiod_line_get_value(this->sensors[i].line);
-        if(val == -1) return;
-        this->sensors[i].val = val;    
-    }*/
+        //trow error!...
+    } 
 }
 
 void WaterTank::set_actuator(gpio_ &actuator, int val)
@@ -81,47 +60,46 @@ void WaterTank::set_actuator(gpio_ &actuator, int val)
     gpiod_line_set_value(actuator.line,val);     
 }
 
-void WaterTank::valveOFF()
+void WaterTank::close_valve()
 {
-    
+    this->set_actuator(valve,0);//check if 0 is the val to turn off the valve! 
 }
 
-void WaterTank::valveON()
+void WaterTank::open_valve()
 {
-
+    this->set_actuator(valve,1);//check if 1 is the val to turn off the valve! 
 }
 
 void WaterTank::pumpON()
 {
-
+    this->set_actuator(pump,1);//check if 0 is the val to turn off the valve! 
 }
 void WaterTank::pumpOFF()
 {
-
+    this->set_actuator(pump,0);//check if 0 is the val to turn off the valve! 
 }
 
 
 
 
+void aux_release_gpio(gpio_ &gpio)
+{
+    gpiod_line_release(gpio.line);   
+    gpiod_chip_close(gpio.chip);
+}
 void WaterTank::release_gpio()
 {
-    /*x
-    for(int i = 0; i< 2; i++)
-    {
-        gpiod_line_release(this->sensors[i].line);
-        gpiod_line_release(this->actuators[i].line);
-        gpiod_chip_close(this->sensors[i].chip);
-        gpiod_chip_close(this->actuators[i].chip);
-    }*/
+    aux_release_gpio(sensor_up);
+    aux_release_gpio(sensor_down);
+    aux_release_gpio(pump);
+    aux_release_gpio(valve);
 }
-
-
 
 void WaterTank::update_state()//needs access to sensors! 
 {
     //define that sensors[0] - bottom one!
     //define that sensors[1] - upper one!
-    /*
+    
     switch(this->current_tank_state)
     {
         case tank_state::IDLE:
@@ -138,7 +116,7 @@ void WaterTank::update_state()//needs access to sensors!
                 }
                 else
                 {
-                    set_actuator(actuators[0],1); //open valve
+                    this->open_valve();
                     current_tank_state = tank_state::DRAIN;
                 }
             }
@@ -174,7 +152,7 @@ void WaterTank::update_state()//needs access to sensors!
                 anchor_sens = clk::now();
             }
             break;
-    } */  
+    }
 }
 
 
