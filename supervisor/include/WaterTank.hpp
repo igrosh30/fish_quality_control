@@ -18,7 +18,8 @@ enum class tank_state
     IDLE,
     DRAIN,
     FILL,
-    CAPTURE//were we call fork()
+    CAPTURE,//were we call fork()
+    STABLE,
 };
 
 struct gpio_
@@ -36,8 +37,11 @@ class WaterTank
     private:
     
     public:
-        const uint32_t sens_timeout = 120000; //1890000
-        bool gpio_active = false;
+        const uint8_t SENSOR_TIMEOUT = 35; //minutes 
+        const uint32_t DRAIN_TIMEOUT = 10;//minutes
+        const uint32_t FILL_TIMEOUT = 3;//minutes
+        
+        bool gpio_active = false;// TODO: derive from .enabled after setup_gpios, or set true when GPIOs wired
 
         gpio_ sensor_up;
         gpio_ sensor_down;
@@ -45,9 +49,10 @@ class WaterTank
         gpio_ valve;
 
         tank_state current_tank_state;
-        clk::time_point anchor_sens;
+        clk::time_point state_entry;
         pid_t sens_pid;
 
+        WaterTank(uint8_t capture_timeout = 35);
         int setup_gpios();
         bool setup_env();
         void read_sensors();
@@ -55,8 +60,11 @@ class WaterTank
         void release_gpio();
 
         void update_state();
+        clk::duration time_in_state() const;
+        void set_next_state(tank_state s );
         pid_t sensor_fork();
 
+        void test_gpios();
         void pumpON();
         void pumpOFF();
         void open_valve();

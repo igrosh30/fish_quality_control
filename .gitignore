@@ -1,5 +1,6 @@
 # data (runtime output)
 data/
+notes.txt
 
 # build outputs
 image_cap

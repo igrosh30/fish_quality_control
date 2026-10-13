@@ -1,10 +1,26 @@
 #include "WaterTank.hpp"
 
+
+//TODO's
+/*
+    1- add timeouts so even if the sensors are not working, we can still perform this! ✅
+    2- add the restart / reboot safety state  
+    3- add a test function for the GPIOS before run the tank state update
+    4- add a fuction that looks to diagnose the GPIOS everytime! maybe it can start working?... or still if we have this it can send us the error! 
+    5- Check if we need to be calling always pumpOn for pumping the water- I thikn not bc this is a relay - check 
+*/
+
+WaterTank::WaterTank(uint8_t capture_timeout) : SENSOR_TIMEOUT(capture_timeout)//this runs with the object creation 
+{
+    //this runs when the object was created 
+    //this->SENSOR_TIMEOUT = capture_timeout;
+}
+
 void init_gpios(gpio_ &gpio, int init_flag, bool is_sensor);
 void aux_release_gpio(gpio_ &gpio);
 int WaterTank::setup_gpios()//WaterTank
 {
-    this->current_tank_state = tank_state::IDLE;
+    set_next_state(tank_state::IDLE);
 
     sensor_down.offset = 144;
     sensor_up.offset = 43;
@@ -31,18 +47,48 @@ void init_gpios(gpio_ &gpio, int init_flag, bool is_sensor)
 }
 
 bool WaterTank::setup_env()
-{
-    /*
-    switch (current_tank_state)
+{   
+    switch (this->current_tank_state)
     {
-    case tank_state::IDLE:
+        case tank_state::IDLE:
+            this->pumpOFF();
+            this->close_valve();
+            if(sensor_up.val == 1)
+            {
+                set_next_state(tank_state::DRAIN);
+                this->open_valve();
+            }
+            else if(sensor_down.val == 0 || sensor_up.val == 0) // It's EMPTY! - FILL
+            {
+                set_next_state(tank_state::FILL);
+                this->pumpON();
+            }
+            break;
         
-        break;
-    
-    default:
-        break;
-    } */
-   return true;  
+        case tank_state::DRAIN:
+            if(sensor_up.val == 0)
+            {
+                this->close_valve();
+                set_next_state(tank_state::STABLE);
+            }
+            else if(time_in_state() >= std::chrono::minutes(DRAIN_TIMEOUT))
+            {
+                set_next_state(tank_state::FILL);
+                this->close_valve();
+                this->pumpON();
+            }
+            break;
+
+        case tank_state::FILL:
+            if(time_in_state() >= std::chrono::minutes(FILL_TIMEOUT) || sensor_up.val == 1)
+            {
+                this->pumpOFF();
+                set_next_state(tank_state::STABLE);
+            }
+            break;
+    } 
+
+   return this->current_tank_state == tank_state::STABLE;  
 }
 
 void WaterTank::read_sensors()
@@ -96,63 +142,72 @@ void WaterTank::release_gpio()
 }
 
 void WaterTank::update_state()//needs access to sensors! 
-{
-    //define that sensors[0] - bottom one!
-    //define that sensors[1] - upper one!
-    
+{       
+    int st;
+    int ret;
     switch(this->current_tank_state)
     {
-        case tank_state::IDLE:
-
-            if(clk::now()-anchor_sens >= std::chrono::milliseconds(sens_timeout))
+        case tank_state::STABLE:
+            /*this->close_valve();
+            this->pumpOFF();NEED to check this!*/
+            if(this->time_in_state() >= std::chrono::minutes(SENSOR_TIMEOUT))
             {
-                std::cout<<"timeout..."<<endl;
-                //open valve
-                if(!gpio_active)
+                //open valve 
+                if(!gpio_active)//even if not active we have the TIMEOUTS! 
                 {
-                    std::cout<<"calling sensor fork...."<< endl;
-                    current_tank_state = tank_state::CAPTURE;
+                    set_next_state(tank_state::CAPTURE);
                     sensor_fork();
                 }
                 else
                 {
                     this->open_valve();
-                    current_tank_state = tank_state::DRAIN;
+                    set_next_state(tank_state::DRAIN);
                 }
             }
             break;
         
         case tank_state::DRAIN:
             
-            if(sensors[0].val== 0 && sensors[1].val == 0)
-            {                                               ////I'm passing many arguments! need to pass now the actuators also! - CREATE A TANK class! we put there the GPIO pins def in main only opdate()
-                set_actuator(actuators[0],0);
-                set_actuator(actuators[1],1); //pump water!
-                current_tank_state= tank_state::FILL;
+            if( (time_in_state() >= std::chrono::minutes(DRAIN_TIMEOUT)) || (sensor_up.val == 0 && sensor_down.val == 0))
+            {
+                this->close_valve();
+                this->pumpON();
+                set_next_state(tank_state::FILL);
             }
             break;
         
-        case tank_state::FILL:
-            if(sensors[0].val== 1 && sensors[1].val == 1)
+        case tank_state::FILL: 
+            if( (time_in_state()>= std::chrono::minutes(FILL_TIMEOUT)) || (sensor_up.val == 1 && sensor_down.val== 1))
             {
-                set_actuator(actuators[1],0); //pump water!
-                current_tank_state= tank_state::CAPTURE;
+                this->pumpOFF();
+                set_next_state(tank_state::CAPTURE);
                 sens_pid= sensor_fork();
             }
             break;
 
         case tank_state::CAPTURE:
-            set_actuator(actuators[0],0); // for safety
-            set_actuator(actuators[1],0); // for safety
-            int st;
-            int ret = waitpid(sens_pid,&st,WNOHANG);
+            this->close_valve(); // for safety- still check if
+            this->pumpOFF(); // for safety
+            
+            ret = waitpid(sens_pid,&st,WNOHANG);
             if(ret > 0 )
-            {
-                current_tank_state= tank_state::IDLE;
-                anchor_sens = clk::now();
-            }
+                set_next_state(tank_state::STABLE);
+
             break;
     }
+}
+
+void WaterTank:: set_next_state(tank_state s )
+{
+    if(s != current_tank_state)
+    {
+        current_tank_state = s;
+        state_entry = clk::now();
+    }   
+}
+
+clk::duration WaterTank::time_in_state() const {
+    return clk::now() - state_entry;
 }
 
 
@@ -178,4 +233,34 @@ pid_t WaterTank::sensor_fork()
     // only reached if execv FAILED:
     perror("execv sensor");
     _exit(127);
+}
+
+
+void WaterTank::test_gpios()
+{
+    const int toggle_delay = 5; // seconds — change as needed
+
+    read_sensors();
+
+    cout << "\n--- GPIO DIAGNOSTIC ---" << endl;
+    cout << "SENSOR_UP   (offset " << sensor_up.offset   << ")  : val=" << sensor_up.val   << "  enabled=" << boolalpha << sensor_up.enabled   << endl;
+    cout << "SENSOR_DOWN (offset " << sensor_down.offset  << ")  : val=" << sensor_down.val  << "  enabled=" << boolalpha << sensor_down.enabled  << endl;
+
+    cout << "\nPUMP (offset " << pump.offset << "):" << endl;
+    cout << "  ON..."  << endl;
+    pumpON();
+    sleep(toggle_delay);
+    cout << "  OFF..." << endl;
+    pumpOFF();
+    sleep(toggle_delay);
+
+    cout << "\nVALVE (offset " << valve.offset << "):" << endl;
+    cout << "  OPEN..."  << endl;
+    open_valve();
+    sleep(toggle_delay);
+    cout << "  CLOSE..." << endl;
+    close_valve();
+    sleep(toggle_delay);
+
+    cout << "--- END DIAGNOSTIC ---\n" << endl;
 }

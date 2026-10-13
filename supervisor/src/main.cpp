@@ -1,6 +1,5 @@
 //SUPERVISOR CODE
 // a multiprocessing environment.
-//need to pass the path when compiling
 
 #include "WaterTank.hpp"
 #include "CameraManager.hpp"
@@ -9,9 +8,9 @@
 shh:  ssh userName@userName.local 
 scp -r ciimar@192.168.220.114::/home/ciimar/fish_quality_control/data/fotos_teste_v2/20260912-075629_lef.png ~/Downloads/
 
-Server side:
+
 sudo systemctl restart fileupload.service - restart if changed something 
-F2UTUND.c11mar! 
+
 
 important documentation calls:
     man 2 execve
@@ -55,51 +54,58 @@ Python Sensor run code:
   /home/ciimar/fish_quality_control/sensor_capture/src/I4FSensReadRawData.py \
   -c /home/ciimar/fish_quality_control/sensor_capture/config/sensors_config.json \
   -o /home/ciimar/fish_quality_control/data/sensors
-
 */
-WaterTank tank; 
-CameraManager cam_manager;
 
-int main(int argc, char **argv)// 1 to capture at the instance 0- default
+
+//we can pass the timeouts that we want! 
+int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork() 
 {
-    uint8_t capture_atRunning = argc > 1 ? stoi(argv[1]) : 0;
+    uint8_t code = argc > 1 ? stoi(argv[1]) : 0; 
+    uint8_t sens_timeout = argc > 2 ? stoi(argv[2]) : 0; 
+    
+    WaterTank tank(sens_timeout > 5 ? sens_timeout : 35);//this value overwrites the defined one !
+    CameraManager cam_manager;    
 
-    //O_CREAT - creates a file not the directory - if doens't exist open() creases
-       
     cam_manager.setup();
-    if(capture_atRunning == 1)
+    if(code == 1)
     {
         cam_manager.camera_fork();
         //could we check wheter the camFork worked?!- 
     }
-    
-    /*
-    int err = tank.setup_gpios();
-    if(err)
+    else if(code == 2)
     {
-        std::cout<<"GPIOS error initializing sensors "<<err << endl;
-        Can we run without the GPIOS? -> Don't think so...
-        return -1;
-    }    
-    */
-
-
-    /*try to add this in the setup!?
-    tank.anchor_sens = clk::now();
-
-    while(tank.setup_env())
-    {
-
+        tank.sensor_fork();
     }
-    */
+    else if(code == 3)//test gpios
+    {
+        tank.setup_gpios();
+        string input;
+        do {
+            tank.test_gpios();
+            cout << "Enter to repeat, 'e' to exit: ";
+            getline(cin, input);
+        } while(input != "e");
+        tank.release_gpio();
+        return 0;
+    }
+    
+    // Phase 1: get the tank to a known-good state
+    tank.setup_gpios();//set the GPIOS
+    bool is_tank_stable = false;
+    while(!is_tank_stable)
+    {
+        //wrap this in a constant period run
+        tank.read_sensors();
+        is_tank_stable = tank.setup_env();
+    }
+
+
+    // Phase 2: normal operation
     while(1)
     {   
-        //Add a constant loop running! 
-        
-        //tank.read_sensors();
+        tank.read_sensors();
+        tank.update_state();
         cam_manager.update();
-        //tank.update_state();
-    
     }
     //tank.release_gpio();
     return 0;
