@@ -154,6 +154,7 @@ void WaterTank::update_state()//needs access to sensors!
             this->pumpOFF();NEED to check this!*/
             if(this->time_in_state() >= std::chrono::minutes(SENSOR_TIMEOUT))
             {
+                std::cout<<"timeout! "<<std::endl;
                 //open valve 
                 if(!gpio_active)//even if not active we have the TIMEOUTS! 
                 {
@@ -163,7 +164,7 @@ void WaterTank::update_state()//needs access to sensors!
                 else
                 {
                     std::cout<<"inside open valve.."<<std::endl;
-                    this->open_valve();
+                    //this->open_valve();
                     //set_next_state(tank_state::DRAIN);
                 }
             }
@@ -189,12 +190,13 @@ void WaterTank::update_state()//needs access to sensors!
             break;
 
         case tank_state::CAPTURE:
-            this->close_valve(); // for safety- still check if
-            this->pumpOFF(); // for safety
+            //this->close_valve(); // for safety- still check if
+            //this->pumpOFF(); // for safety
             
             ret = waitpid(sens_pid,&st,WNOHANG);
-            if(ret > 0 )
-                set_next_state(tank_state::STABLE);
+            if(ret == 0) return;
+            if (ret == -1) return;
+            set_next_state(tank_state::STABLE);
 
             break;
     }
