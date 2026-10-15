@@ -60,6 +60,9 @@ Python Sensor run code:
 //we can pass the timeouts that we want! 
 int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork() 
 {
+    /*
+    ./supervisor/supervisor code sens_timeout 
+    */
     uint8_t code = argc > 1 ? stoi(argv[1]) : 0; 
     uint8_t sens_timeout = argc > 2 ? stoi(argv[2]) : 0; 
     
@@ -90,20 +93,21 @@ int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork()
     }
     
     // Phase 1: get the tank to a known-good state
-    tank.setup_gpios();//set the GPIOS
+    tank.setup_gpios();//set the GPIOS + init tankState
+    /*
     bool is_tank_stable = false;
     while(!is_tank_stable)
     {
         //wrap this in a constant period run
         tank.read_sensors();
         is_tank_stable = tank.setup_env();
-    }
+    }*/
 
 
     // Phase 2: normal operation
     while(1)
     {   
-        tank.read_sensors();
+        //tank.read_sensors();
         tank.update_state();
         cam_manager.update();
     }

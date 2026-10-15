@@ -20,8 +20,9 @@ void init_gpios(gpio_ &gpio, int init_flag, bool is_sensor);
 void aux_release_gpio(gpio_ &gpio);
 int WaterTank::setup_gpios()//WaterTank
 {
-    set_next_state(tank_state::IDLE);
-
+    set_next_state(tank_state::STABLE);
+    this->gpio_active = false;
+    /*
     sensor_down.offset = 144;
     sensor_up.offset = 43;
     pump.offset = 106;
@@ -32,6 +33,7 @@ int WaterTank::setup_gpios()//WaterTank
 
     init_gpios(pump,0,false);
     init_gpios(valve,0,false);
+    */
     return 0;
 }
 
