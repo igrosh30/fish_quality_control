@@ -10,11 +10,12 @@
     5- Check if we need to be calling always pumpOn for pumping the water- I thikn not bc this is a relay - check 
 */
 
+/*
 WaterTank::WaterTank(uint8_t capture_timeout) : SENSOR_TIMEOUT(capture_timeout)//this runs with the object creation 
 {
     //this runs when the object was created 
     //this->SENSOR_TIMEOUT = capture_timeout;
-}
+}*/
 
 void init_gpios(gpio_ &gpio, int init_flag, bool is_sensor);
 void aux_release_gpio(gpio_ &gpio);
