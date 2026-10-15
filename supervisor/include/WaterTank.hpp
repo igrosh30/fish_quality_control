@@ -52,7 +52,7 @@ class WaterTank
         clk::time_point state_entry;
         pid_t sens_pid;
 
-        WaterTank(uint8_t capture_timeout = 35);
+        //WaterTank(uint8_t capture_timeout = 35);
         int setup_gpios();
         bool setup_env();
         void read_sensors();
