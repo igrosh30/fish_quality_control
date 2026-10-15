@@ -100,6 +100,7 @@ int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork()
     
     // Phase 1: get the tank to a known-good state
     tank.setup_gpios();//set the GPIOS + init tankState
+    std::cout<<"setup gpio ini done: "<<tank.current_tank_state<< std::endl;
     /*
     bool is_tank_stable = false;
     while(!is_tank_stable)

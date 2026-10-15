@@ -152,6 +152,7 @@ void WaterTank::update_state()//needs access to sensors!
         case tank_state::STABLE:
             /*this->close_valve();
             this->pumpOFF();NEED to check this!*/
+            std::cout<<"in STABLE state"<<std::endl;
             if(this->time_in_state() >= std::chrono::minutes(SENSOR_TIMEOUT))
             {
                 std::cout<<"timeout! "<<std::endl;
