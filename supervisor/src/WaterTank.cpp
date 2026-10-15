@@ -228,7 +228,7 @@ pid_t WaterTank::sensor_fork()
         (char*)"-c",
         (char*)"/home/ciimar/fish_quality_control/sensor_capture/config/sensors_config.json",
         (char*)"-o",
-        (char*)"/home/ciimar/fish_quality_control/data/sensors",
+        (char*)"/home/ciimar/fish_quality_control/data/pending",
         nullptr
     };
     execv("/home/ciimar/fish_quality_control/env/bin/python3", argv_sen);
