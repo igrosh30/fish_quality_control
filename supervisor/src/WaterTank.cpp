@@ -158,12 +158,13 @@ void WaterTank::update_state()//needs access to sensors!
                 if(!gpio_active)//even if not active we have the TIMEOUTS! 
                 {
                     set_next_state(tank_state::CAPTURE);
-                    sensor_fork();
+                    this->sens_pid = sensor_fork();
                 }
                 else
                 {
+                    std::cout<<"inside open valve.."<<std::endl;
                     this->open_valve();
-                    set_next_state(tank_state::DRAIN);
+                    //set_next_state(tank_state::DRAIN);
                 }
             }
             break;
