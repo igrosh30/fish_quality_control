@@ -64,10 +64,11 @@ int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork()
     ./supervisor/supervisor code sens_timeout 
     */
     uint8_t code = argc > 1 ? stoi(argv[1]) : 0; 
-    uint8_t sens_timeout = argc > 2 ? stoi(argv[2]) : 0; 
+    //uint8_t sens_timeout = argc > 2 ? stoi(argv[2]) : 0; 
     
-    WaterTank tank(sens_timeout > 5 ? sens_timeout : 35);//this value overwrites the defined one !
+    //WaterTank tank(sens_timeout > 5 ? sens_timeout : 35);//this value overwrites the defined one !
     CameraManager cam_manager;    
+    WaterTank tank;
 
     cam_manager.setup();
     if(code == 1)
@@ -79,7 +80,12 @@ int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork()
     {
         tank.sensor_fork();
     }
-    else if(code == 3)//test gpios
+    else if(code == 3)
+    {
+        tank.sensor_fork();
+        cam_manager.camera_fork();
+    }
+    else if(code == 99)//test gpios
     {
         tank.setup_gpios();
         string input;
