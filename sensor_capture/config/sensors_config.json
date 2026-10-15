@@ -1,0 +1,247 @@
+{
+	"general": {
+		"config_date": "2025.05.25",
+		"tank_id": "Tank01",
+		"number_of_read_cycles": 3,
+		"warmup_secs": 1.0,
+		"cycle_interval_secs": 20.0
+	},
+	"gateway": {
+		"init_timeout": 0.5,
+		"reinit_on_error": 1,
+		"serial": {
+			"port": "/dev/ttyUSB0", 
+			"baudrate": 9600,
+			"bytesize": 8,
+			"parity": "N",
+			"stopbits": 1
+		}
+	},
+	"lux": {
+		"enable": 0,
+		"description": "Illuminance",
+		"unit": "lux",
+		"address": 35,
+		"factor": 1.6905,
+		"nreads": 3,
+		"time_between_reads": 0.1
+	},
+	"sensors": {
+		"Dissolved_O2": {
+			"enable": 1,
+			"description": "Dissolved Oxygen sensor",
+			"modbus_address": 10,
+			"number_of_reads": 3,
+			"time_between_reads": 0.1,
+			"number_of_retries": 3,
+			"command_timeout": 0.1,
+			"modbus_registers": {
+				"DO": {
+					"reg_low": 1,
+					"reg_high": 0,
+					"reg_type": "f",
+					"reg_decp": 3,
+					"reg_fact": 1.0,
+					"reg_unit": "mg/l"
+				},
+				"saturation": {
+					"reg_low": 3,
+					"reg_high": 2,
+					"reg_type": "f",
+					"reg_decp": 1,
+					"reg_fact": 1.0,
+					"reg_unit": "%"
+				},
+				"temperature": {
+					"reg_low": 5,
+					"reg_high": 4,
+					"reg_type": "f",
+					"reg_decp": 1,
+					"reg_fact": 1.0,
+					"reg_unit": "C"
+				}
+			}
+		},
+		"pH": {
+			"enable": 1,
+			"description": "pH sensor",
+			"modbus_address": 3,
+			"number_of_reads": 3,
+			"time_between_reads": 0.1,
+			"number_of_retries": 3,
+			"command_timeout": 0.1,
+			"modbus_registers": {
+				"pH": {
+					"reg_low": 1,
+					"reg_high": 0,
+					"reg_type": "f",
+					"reg_decp": 2,
+					"reg_fact": 1.0,
+					"reg_unit": ""
+				}
+			}
+		},
+		"EC_Salinity": {
+			"enable": 1,
+			"description": "Electro-condutivity and Salinity sensor",
+			"modbus_address": 4,
+			"number_of_reads": 3,
+			"time_between_reads": 0.1,
+			"number_of_retries": 3,
+			"command_timeout": 0.1,
+			"modbus_registers": {
+				"condutivity": {
+					"reg_low": 1,
+					"reg_high": 0,
+					"reg_type": "f",
+					"reg_decp": 3,
+					"reg_fact": 1.0,
+					"reg_unit": "S/cm"
+				},
+				"null1": {
+					"reg_low": 3,
+					"reg_high": 2,
+					"reg_type": "f",
+					"reg_decp": 3,
+					"reg_fact": 1.0,
+					"reg_unit": ""
+				},
+				"temperature": {
+					"reg_low": 5,
+					"reg_high": 4,
+					"reg_type": "f",
+					"reg_decp": 1,
+					"reg_fact": 1.0,
+					"reg_unit": "C"
+				},
+				"null2": {
+					"reg_low": 7,
+					"reg_high": 6,
+					"reg_type": "f",
+					"reg_decp": 3,
+					"reg_fact": 1.0,
+					"reg_unit": ""
+				},
+				"salinity": {
+					"reg_low": 9,
+					"reg_high": 8,
+					"reg_type": "f",
+					"reg_decp": 0,
+					"reg_fact": 1.0,
+					"reg_unit": "ppm"
+				}
+			}
+		},
+		"Dissolved_CO2": {
+			"enable": 0,
+			"description": "Dissolved CO2 sensor",
+			"modbus_address": 32,
+			"number_of_reads": 3,
+			"time_between_reads": 0.5,
+			"number_of_retries": 3,
+			"command_timeout": 0.1,
+			"modbus_registers": {
+				"slave_id": {
+					"reg_low": 0,
+					"reg_high": 0,
+					"reg_type": "i",
+					"reg_decp": 0,
+					"reg_fact": 1.0,
+					"reg_unit": ""
+				},
+				"CO2": {
+					"reg_low": 1,
+					"reg_high": 1,
+					"reg_type": "i",
+					"reg_decp": 0,
+					"reg_fact": 1.0,
+					"reg_unit": "mg/l"
+				}
+			}
+		},
+		"Ammonia_Ion": {
+			"enable": 0,
+			"description": "Ammonia Ion NH4+ sensor",
+			"modbus_address": 6,
+			"number_of_reads": 3,
+			"time_between_reads": 0.1,
+			"number_of_retries": 3,
+			"command_timeout": 0.1,
+			"modbus_registers": {
+				"NH4+": {
+					"reg_low": 0,
+					"reg_high": 0,
+					"reg_type": "i",
+					"reg_decp": 0,
+					"reg_fact": 1.0,
+					"reg_unit": "ppm"
+				},
+				"decpnh4": {
+					"reg_low": 1,
+					"reg_high": 1,
+					"reg_type": "i",
+					"reg_decp": 0,
+					"reg_fact": 1.0,
+					"reg_unit": ""
+				},
+				"temperature": {
+					"reg_low": 2,
+					"reg_high": 2,
+					"reg_type": "i",
+					"reg_decp": 0,
+					"reg_fact": 1.0,
+					"reg_unit": "C"
+				},
+				"decptemp": {
+					"reg_low": 3,
+					"reg_high": 3,
+					"reg_type": "i",
+					"reg_decp": 0,
+					"reg_fact": 1.0,
+					"reg_unit": "C"
+				}
+			}
+		},
+		"Turbidity": {
+			"enable": 1,
+			"description": "Turbidity sensor",
+			"modbus_address": 8,
+			"number_of_reads": 3,
+			"time_between_reads": 0.1,
+			"number_of_retries": 3,
+			"command_timeout": 0.1,
+			"modbus_registers": {
+				"turb": {
+					"reg_low": 1,
+					"reg_high": 0,
+					"reg_type": "f",
+					"reg_decp": 2,
+					"reg_fact": 1.0,
+					"reg_unit": "NTU"
+				}
+			}
+		}
+	},
+	"factors": {
+		"lux_factor": 1.0,
+		"temp_constant": 0.0,
+		"temp_factor": 1.0,
+		"do_lux_factor": 0.0,
+		"do_constant": 0.0,
+		"do_factor": 1.0,
+		"sat_constant": 0.0,
+		"sat_factor": 1.0,
+		"co2_constant": 0.0,
+		"co2_factor": 1.0,
+		"nh4_constant": 0.0,
+		"nh4_factor": 1.0,
+		"ph_constant": 0.0,
+		"ph_factor": 1.0,
+		"ec_constant": 0.0,
+		"ec_factor": 1.0,
+		"sal_constant": 0.0,
+		"sal_factor": 1.0,
+		"turb_constant": 0.0,
+		"turb_factor": 1.0
+	}
+}
