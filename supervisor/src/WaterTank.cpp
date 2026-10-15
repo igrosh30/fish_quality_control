@@ -182,8 +182,8 @@ void WaterTank::update_state()//needs access to sensors!
             if( (time_in_state()>= std::chrono::minutes(FILL_TIMEOUT)) || (sensor_up.val == 1 && sensor_down.val== 1))
             {
                 this->pumpOFF();
-                set_next_state(tank_state::CAPTURE);
                 sens_pid= sensor_fork();
+                set_next_state(tank_state::CAPTURE);
             }
             break;
 
@@ -228,7 +228,7 @@ pid_t WaterTank::sensor_fork()
         (char*)"-c",
         (char*)"/home/ciimar/fish_quality_control/sensor_capture/config/sensors_config.json",
         (char*)"-o",
-        (char*)"/home/ciimar/fish_quality_control/data/sensors",
+        (char*)"/home/ciimar/fish_quality_control/data/pending",
         nullptr
     };
     execv("/home/ciimar/fish_quality_control/env/bin/python3", argv_sen);

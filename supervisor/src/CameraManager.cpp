@@ -21,7 +21,7 @@ void CameraManager::update()
         int st;
         int ret;
         case cam_manager_state::IDLE:            
-            if(time_in_state() >= std::chrono::hours(cam_timeout)) //TIMEOUT
+            if(time_in_state() >= std::chrono::minutes(cam_timeout)) //TIMEOUT
             {                
                 if(is_nightTime())
                 {
@@ -47,8 +47,8 @@ void CameraManager::update()
                         set_next_state(cam_manager_state::CAPTURE);
                     else
                     {
-                        set_next_state(cam_manager_state::IDLE);
                         write_logMsg("camera_fork(): 'fork() error | pid_push < 0'",this->fd);
+                        set_next_state(cam_manager_state::IDLE);
                     }
                 }
             }
