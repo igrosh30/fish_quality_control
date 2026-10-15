@@ -31,7 +31,7 @@ class CameraManager
     /* data */
     //LogFile path
     const std::string cam_log_file =  "/home/ciimar/fish_quality_control/data/logCam.txt";
-    const uint8_t cam_timeout  = 5;//minutes
+    const uint8_t cam_timeout  = 60;//minutes
     const int FRAMES_REQUESTED = 1;
     
     int captures;

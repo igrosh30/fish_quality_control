@@ -37,7 +37,7 @@ class WaterTank
     private:
     
     public:
-        const uint8_t SENSOR_TIMEOUT = 2; //minutes 
+        const uint8_t SENSOR_TIMEOUT = 31; //minutes 
         const uint32_t DRAIN_TIMEOUT = 10;//minutes
         const uint32_t FILL_TIMEOUT = 3;//minutes
         
