@@ -61,8 +61,9 @@ int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork()
     
     //WaterTank tank(sens_timeout > 5 ? sens_timeout : 35);//this value overwrites the defined one !
     CameraManager cam_manager;    
-    WaterTank tank;
+    WaterTank_Manager tank_manager;
 
+    tank_manager.setup("/dev/ttyACM0",B9600); //🚨 LOOK if port changes under wich sircunmstances!
     cam_manager.setup();
     if(code == 1)
     {
@@ -71,29 +72,26 @@ int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork()
     }
     else if(code == 2)
     {
-        tank.sensor_fork();
+        tank_manager.sensor_fork();
     }
     else if(code == 3)
     {
-        tank.sensor_fork();
+        tank_manager.sensor_fork();
         cam_manager.camera_fork();
     }
     else if(code == 99)//test gpios
     {
-        tank.setup_gpios();
+        tank_manager.setup_gpios();
         string input;
         do {
-            tank.test_gpios();
+            tank_manager.test_gpios();
             cout << "Enter to repeat, 'e' to exit: ";
             getline(cin, input);
         } while(input != "e");
-        tank.release_gpio();
+        tank_manager.release_gpio();
         return 0;
     }
     
-    // Phase 1: get the tank to a known-good state
-    tank.setup_gpios();//set the GPIOS + init tankState
-    std::cout << "setup gpio ini done: " << static_cast<int>(tank.current_tank_state) << std::endl;
     /*
     bool is_tank_stable = false;
     while(!is_tank_stable)
@@ -108,7 +106,7 @@ int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork()
     while(1)
     {   
         //tank.read_sensors();
-        tank.update_state();
+        tank_manager.update_state();
         cam_manager.update();
     }
     //tank.release_gpio();

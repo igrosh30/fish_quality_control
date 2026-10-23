@@ -42,11 +42,18 @@ PC_LIBS     := -lcurl
 IC_LIBS   := -lsl_zed -lcudart
 
 # ---- supervisor --------------------------------------------
+#executable name+path.
 SV_BIN    := supervisor/supervisor
+
+#.cpp files to compile.
 SV_SRC    := supervisor/src/main.cpp \
 		     supervisor/src/CameraManager.cpp \
-			 supervisor/src/WaterTank.cpp
-SV_INC    := -Isupervisor/include
+			 supervisor/src/WaterTank.cpp \
+			 supervisor/src/TankProtocol.cpp \
+			 lib/protocol/core/FrameParser.cpp \
+			 lib/protocol/linux/LinuxSerialTransport.cpp
+#include libs:
+SV_INC    := -Isupervisor/include 
 SV_LIBS   := -lgpiod 
 
 # ---- rules -------------------------------------------------
