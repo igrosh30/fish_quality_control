@@ -53,7 +53,7 @@ class WaterTank_Manager
         clk::time_point setup_entry;
         uint8_t ping_tries = 0;
 
-        bool com_working;
+        
         bool waiting_response = false;
 
     public:
@@ -64,7 +64,8 @@ class WaterTank_Manager
         //-----------COM PARAMS--------
         const uint32_t COM_TIMEOUT = 5;//seconds
         const uint8_t MAX_TRIES = 10;
-
+        bool com_working;
+        
         tank_manager_state state;
         clk::time_point state_entry;
         pid_t sens_pid;

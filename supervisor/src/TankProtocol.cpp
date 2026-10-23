@@ -95,7 +95,7 @@ int16_t TankProtocol::askTankState()
     if (transport == nullptr) return -1;
     Frame f;
     buildHeader(f, DATA_ASK, 1, TANK_MCU);
-    f.payload.data.cmdId = ;
+    f.payload.data.cmdId = ASK_TANK_STATE;
     return transport->sendFrame(f);
 }
 
