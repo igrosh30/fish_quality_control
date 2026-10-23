@@ -64,7 +64,7 @@ int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork()
     WaterTank_Manager tank_manager;
 
     tank_manager.setup("/dev/ttyACM0",B9600); //🚨 LOOK if port changes under wich sircunmstances!
-    cam_manager.setup();
+    //cam_manager.setup();
     if(code == 1)
     {
         cam_manager.camera_fork();
@@ -81,14 +81,12 @@ int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork()
     }
     else if(code == 99)//test gpios
     {
-        tank_manager.setup_gpios();
-        string input;
-        do {
-            tank_manager.test_gpios();
-            cout << "Enter to repeat, 'e' to exit: ";
-            getline(cin, input);
-        } while(input != "e");
-        tank_manager.release_gpio();
+        do
+        {
+            tank_manager.update_setup();
+            
+        }while(!tank_manager.com_working);
+        
         return 0;
     }
     
