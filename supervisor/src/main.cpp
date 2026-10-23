@@ -1,7 +1,7 @@
 //SUPERVISOR CODE
 // a multiprocessing environment.
 
-#include "WaterTank.hpp"
+#include "WaterTank_Manager.hpp"
 #include "CameraManager.hpp"
 
 /*
@@ -84,7 +84,7 @@ int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork()
         do
         {
             tank_manager.update_setup();
-            
+
         }while(!tank_manager.com_working);
         
         return 0;

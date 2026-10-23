@@ -1,6 +1,6 @@
-#include "lib/COM_protocol/core/protocol.h"
-#include "lib/COM_protocol/core/FrameParser.h"
-#include "lib/COM_protocol/linux/LinuxSerialTransport.hpp"
+#include "protocol.h"
+#include "FrameParser.h"
+#include "LinuxSerialTransport.hpp"
 
 #include <string.h>
 
