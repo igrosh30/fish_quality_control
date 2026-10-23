@@ -10,11 +10,6 @@
 #    make image_capture   # build just the capture binary
 #    make supervisor      # build just the supervisor
 #    make clean           # delete the built binaries
-#
-#  WARNING: every recipe line below (the indented g++/rm lines)
-#           MUST start with a real TAB, not spaces. This is Make's
-#           single most infamous gotcha. If you retype this, check
-#           the indentation is a tab.
 # ============================================================
 
 # ---- Compiler & flags shared by both targets ---------------
@@ -31,32 +26,25 @@ IC_INC    := -Iimage_capture/include \
              -I/usr/local/cuda/include
 IC_LIBDIR := -L/usr/local/zed/lib \
              -L/usr/local/cuda/lib64
-
-# ---- push_capture -----------------------------------------
-PC_BIN      := push_captures/push_captures
-PC_SRC      := push_captures/src/main.cpp 
-PC_LIBS     := -lcurl
-# >>> FILL THIS FROM YOUR OWN WORKING g++ COMMAND <<<
-# These are the *typical* ZED + CUDA libs, but I don't have your
-# exact link line, so verify these match the -l flags you used.
 IC_LIBS   := -lsl_zed -lcudart
 
-# ---- supervisor --------------------------------------------
-#executable name+path.
-SV_BIN    := supervisor/supervisor
+# ---- push_capture -----------------------------------------
+PC_BIN    := push_captures/push_captures
+PC_SRC    := push_captures/src/main.cpp
+PC_LIBS   := -lcurl
 
-#.cpp files to compile.
+# ---- supervisor --------------------------------------------
+SV_BIN    := supervisor/supervisor
 SV_SRC    := supervisor/src/main.cpp \
-		     supervisor/src/CameraManager.cpp \
-			 supervisor/src/WaterTank_Manager.cpp \
-			 supervisor/src/TankProtocol.cpp \
-			 lib/COM_protocol/core/FrameParser.cpp \
-			 lib/COM_protocol/linux/LinuxSerialTransport.cpp
-#include libs:
+             supervisor/src/CameraManager.cpp \
+             supervisor/src/WaterTank_Manager.cpp \
+             supervisor/src/TankProtocol.cpp \
+             lib/COM_protocol/core/FrameParser.cpp \
+             lib/COM_protocol/linux/LinuxSerialTransport.cpp
 SV_INC    := -Isupervisor/include \
-			 -Ilib/COM_protocol/core \ 
-			 -Ilib/COM_protocol/linux
-SV_LIBS   := -lgpiod 
+             -Ilib/COM_protocol/core \
+             -Ilib/COM_protocol/linux
+SV_LIBS   := -lgpiod
 
 # ---- rules -------------------------------------------------
 .PHONY: all clean
@@ -70,8 +58,7 @@ $(SV_BIN): $(SV_SRC)
 	$(CXX) $(CXXFLAGS) $(SV_SRC) $(SV_INC) $(SV_LIBS) -o $@
 
 $(PC_BIN): $(PC_SRC)
-	$(CXX) $(CXXFLAGS) $(PC_SRC) $(PC_LIBDIR) $(PC_LIBS) -o $@ 
-
+	$(CXX) $(CXXFLAGS) $(PC_SRC) $(PC_LIBS) -o $@
 
 clean:
 	rm -f $(IC_BIN) $(SV_BIN) $(PC_BIN)
