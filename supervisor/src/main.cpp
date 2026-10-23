@@ -5,13 +5,6 @@
 #include "CameraManager.hpp"
 
 /*
-shh:  ssh userName@userName.local 
-scp -r ciimar@192.168.220.114::/home/ciimar/fish_quality_control/data/fotos_teste_v2/20260912-075629_lef.png ~/Downloads/
-
-
-sudo systemctl restart fileupload.service - restart if changed something 
-
-
 important documentation calls:
     man 2 execve
     man 2 poll 
