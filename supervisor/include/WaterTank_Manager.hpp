@@ -1,45 +1,37 @@
 #pragma once 
 
 #include <iostream>
-#include <chrono>
 #include <sys/wait.h>
 //#include <gpiod.h>
 #include <ctime>
-#include <chrono>
 #include <unistd.h>
-#include "TankProtocol.hpp"
 
+#include "TankProtocol.hpp"
+#include "FSM.hpp"
 
 using namespace std;
 
-//--------TIMEOUT VAR---------------------//
-using clk = std::chrono::steady_clock;
-
-//--------RAW TANK STATE------------------//
-enum class tank_state : uint8_t
-{
-    IDLE         = 0,
-    WAIT_CMD     = 1,
-    DRAIN_AT_TOP = 2,
-    DRAIN        = 3,
-    FILL         = 4,
-    STABLE       = 5,
-};
-
-
 enum class tank_manager_state
 {
-    INI,
+    IDLE,
+    CHECK_TANK,
     WAIT,
     CAPTURE,//were we call fork()
-    STABLE,
 };
 
-enum class tank_setup
+enum class poll_state
+{
+    IDLE,       // not polling — waiting for someone to trigger
+    ASK,        // send the askTankState request
+    WAIT_STATE, // waiting for the reply
+    ERROR,      // MCU not responding after retries
+};
+
+enum class com_check
 {
     IDLE,
     WAIT_PONG,//were we call fork()
-    WAIT_TANK_STABLE,
+    COM_OK,
     COM_ERROR,
 };
 
@@ -49,39 +41,38 @@ class WaterTank_Manager
         LinuxSerialTransport serial;
         TankProtocol tankLink;//this receives a ready transp.link - LinuxSerialTransport 
         
-        tank_setup setup_state;
+        
         clk::time_point setup_entry;
         uint8_t ping_tries = 0;
+        uint8_t ask_tries = 0;
 
         
         bool waiting_response = false;
 
     public:
+        FSM<com_check> comFSM;
+        FSM<tank_manager_state> managerFSM;
+        FSM<poll_state> poll_tankFSM;
+
+
         const uint8_t SENSOR_TIMEOUT = 31; //minutes 
         const uint32_t DRAIN_TIMEOUT = 10;//minutes
         const uint32_t FILL_TIMEOUT = 3;//minutes
         
         //-----------COM PARAMS--------
-        const uint32_t COM_TIMEOUT = 5;//seconds
+        const uint32_t COM_TIMEOUT = 2;//seconds
         const uint8_t MAX_TRIES = 10;
         bool com_working;
-        
-        tank_manager_state state;
-        clk::time_point state_entry;
+    
         pid_t sens_pid;
-
-        //WaterTank(uint8_t capture_timeout = 35);
+        tank_state current_tank_state = tank_state::IDLE;
         
         void setup(const char* port,speed_t baud);
-
-        void update_setup();
+        void checkLink();//checks wheter com is working! - the only func changing com_working!
         void update_state();
 
-        clk::duration time_in_state() const;
-        clk::duration time_in_setup() const;
+        void update_tank_state_COM();
 
-        void set_next_state(tank_manager_state s );
-        void set_setup_state(tank_setup s);
         pid_t sensor_fork();
 };
 

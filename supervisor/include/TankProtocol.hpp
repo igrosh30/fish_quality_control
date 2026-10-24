@@ -1,17 +1,10 @@
 #include "protocol.h"
 #include "FrameParser.h"
 #include "LinuxSerialTransport.hpp"
-
+#include "Config.h"
 #include <string.h>
 
-enum class com_state
-{
-    IDLE,
-    WAIT_RESPONSE,
-};
-
 class TankProtocol {
-
     
 private:
     ITransport* transport;
@@ -22,8 +15,7 @@ private:
 public:
 
     void init(ITransport* t, NodeId id);
-    void update_com();
-    com_state current_com_state;
+    //void update_com();
 
     // Convenience senders
     int16_t sendPing();
@@ -39,6 +31,6 @@ public:
     void update();
     bool hasNewFrame();
     bool poll_pong();
-    bool poll_tank_ready(bool& ready); // pumps, returns true if a reply came; sets ready
+    bool poll_tank_state(tank_state& st);
     void getFrame(Frame& f);
 };

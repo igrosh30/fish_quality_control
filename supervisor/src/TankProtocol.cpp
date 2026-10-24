@@ -43,6 +43,7 @@ int16_t TankProtocol::sendPing()
     buildHeader(f, PING, 0, TANK_MCU);
     return transport->sendFrame(f);
 }
+
 bool TankProtocol::poll_pong()
 {
     if (transport == nullptr) return false;
@@ -55,6 +56,22 @@ bool TankProtocol::poll_pong()
     return false;
 }
 
+bool TankProtocol::poll_tank_state(tank_state& st)
+{
+    if (transport == nullptr) return false;
+    transport->updateFrame();
+    if (transport->hasNewFrame()) {
+        Frame f;
+        transport->getFrame(f);
+        //🚨NEED to make suere they match what they'll send! 
+        if (f.header.type == DATA_SEND &&
+            f.payload.data.cmdId == ASK_TANK_STATE) {
+            st = (tank_state)f.payload.data.param[0];
+            return true;
+        }
+    }
+    return false;
+}
 
 int16_t TankProtocol::sendWakeUp()
 {
@@ -78,6 +95,7 @@ int16_t TankProtocol::sendStartCycle()
     return transport->sendFrame(f);
 }
 
+//🚨needs to look 
 int16_t TankProtocol::sendSetTimeout(uint8_t cmdId, uint32_t timeout_ms)
 {
     if(transport == nullptr)
@@ -98,6 +116,8 @@ int16_t TankProtocol::askTankState()
     f.payload.data.cmdId = ASK_TANK_STATE;
     return transport->sendFrame(f);
 }
+//bool poolTankState()! 
+
 
 void TankProtocol::update()
 {

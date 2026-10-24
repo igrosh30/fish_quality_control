@@ -48,23 +48,8 @@ Python Sensor run code:
   -c /home/ciimar/fish_quality_control/sensor_capture/config/sensors_config.json \
   -o /home/ciimar/fish_quality_control/data/sensors
 */
-
-
-//we can pass the timeouts that we want! 
-int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork() 
+void ini_functions(int code, WaterTank_Manager& tank_manager, CameraManager& cam_manager)
 {
-    /*
-    ./supervisor/supervisor code sens_timeout 
-    */
-    uint8_t code = argc > 1 ? stoi(argv[1]) : 0; 
-    //uint8_t sens_timeout = argc > 2 ? stoi(argv[2]) : 0; 
-    
-    //WaterTank tank(sens_timeout > 5 ? sens_timeout : 35);//this value overwrites the defined one !
-    CameraManager cam_manager;    
-    WaterTank_Manager tank_manager;
-
-    tank_manager.setup("/dev/ttyACM0",B9600); //🚨 LOOK if port changes under wich sircunmstances!
-    //cam_manager.setup();
     if(code == 1)
     {
         cam_manager.camera_fork();
@@ -83,27 +68,43 @@ int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork()
     {
         do
         {
-            tank_manager.update_setup();
+            tank_manager.validateCOM();
 
         }while(!tank_manager.com_working);
-        
-        return 0;
     }
-    
+}
+
+//we can pass the timeouts that we want! 
+int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork() 
+{
     /*
-    bool is_tank_stable = false;
-    while(!is_tank_stable)
+    ./supervisor/supervisor code sens_timeout 
+    */
+    uint8_t code = argc > 1 ? stoi(argv[1]) : 0; 
+    //uint8_t sens_timeout = argc > 2 ? stoi(argv[2]) : 0; 
+    
+    CameraManager cam_manager;    
+    WaterTank_Manager tank_manager;
+
+    tank_manager.setup("/dev/ttyACM0",B9600); //🚨 LOOK if port changes under wich sircunmstances!
+    cam_manager.setup();
+    
+    //passed from the code sent!
+    ini_functions(code,tank_manager,cam_manager);
+
+    //phase1- setupCom:
+    do
     {
-        //wrap this in a constant period run
-        tank.read_sensors();
-        is_tank_stable = tank.setup_env();
-    }*/
+        tank_manager.validateCOM();
+    } while (tank_manager.setup_state != tank_setup::COM_OK || 
+             tank_manager.setup_state != tank_setup::COM_ERROR);
 
-
+    
     // Phase 2: normal operation
     while(1)
     {   
         //tank.read_sensors();
+        tank_manager.update_tank_state_COM();
         tank_manager.update_state();
         cam_manager.update();
     }

@@ -16,100 +16,157 @@
 
 void WaterTank_Manager::setup(const char* port,speed_t baud)
 {
+
     this->com_working = false;
-    if(serial.init(port,baud))
+    if(serial.init(port,baud)) // se vai a baixo fudeu
     {
         std::cout<<"error initializing COM with sensors!";
         return;
     }
-    //now we should link the com_sensors to the protocol!
     tankLink.init(&serial, NodeId::HOST);
-    this->setup_state = tank_setup::IDLE;
+    
+    comFSM.init(com_check::IDLE);
+    managerFSM.init(tank_manager_state::IDLE);
+    poll_tankFSM.init(poll_state::IDLE);
+    //this->setup_state = tank_setup::IDLE
 }
 
-void WaterTank_Manager::update_setup()
+//Sends PING loooks for PONG
+void WaterTank_Manager::checkLink()
 {
-    switch (setup_state)
+    //we maybe wrap this in a while loop + timeout-> what we want is call once and check whetther com is working! 
+    switch (comFSM.state())
     {
-        case tank_setup::IDLE:
+        case com_check::IDLE:
             this->tankLink.sendPing();
-            set_setup_state(tank_setup::WAIT_PONG);
+            comFSM.set_state(com_check::WAIT_PONG);
             break;
         
-        case tank_setup::WAIT_PONG:
+        case com_check::WAIT_PONG:
             //check timeout
-            if(time_in_setup() >= std::chrono::seconds(COM_TIMEOUT))
+            if(comFSM.time_in_state() >= std::chrono::seconds(COM_TIMEOUT))
             {
                 if(ping_tries < MAX_TRIES)
                 {
                     ping_tries++;
                     tankLink.sendPing();
-                    set_setup_state(tank_setup::WAIT_PONG);
+                    comFSM.set_state(com_check::WAIT_PONG);
                 }
                 else
                 {
                     //COM not working! 
+                    ping_tries = 0;
                     this->com_working = false;
-                    set_setup_state(tank_setup::COM_ERROR);
+                    comFSM.set_state(com_check::COM_ERROR);
                 }
                 return; // or break? break leaves the block! so we need treturn;! 
             }
             if(tankLink.poll_pong())
             {
+                ping_tries = 0;
                 this->com_working = true;
-                tankLink.askTankState();
-                set_setup_state(tank_setup::WAIT_TANK_STABLE);
+                comFSM.set_state(com_check::COM_OK);
             }
-            break;
-        default:
             break;
     }
 }
 
+
+void WaterTank_Manager::update_tank_state_COM()
+{
+    switch (poll_tankFSM.state())
+    {
+        case poll_state::ASK:
+            ask_tries++;
+            tankLink.askTankState();
+            poll_tankFSM.set_state(poll_state::WAIT_STATE);
+            break;
+
+        case poll_state::WAIT_STATE:
+            if (poll_tankFSM.time_in_state() >= std::chrono::seconds(COM_TIMEOUT))
+            {
+                if (ask_tries < MAX_TRIES) {
+                    poll_tankFSM.set_state(poll_state::ASK);
+                } else {
+                    ask_tries = 0;
+                    poll_tankFSM.set_state(poll_state::ERROR);
+                }
+                return;
+            }
+            if (tankLink.poll_tank_state(current_tank_state)) {
+                // reply received — current_tank_state updated
+                ask_tries = 0;
+                poll_tankFSM.set_state(poll_state::ASK);  //needs to be recursive! 
+            }
+            break;
+
+        case poll_state::IDLE:
+            // nothing — the caller sets ASK when it wants a fresh poll
+            break;
+
+        case poll_state::ERROR:
+            // terminal until caller resets
+            break;
+    }
+}
 
 void WaterTank_Manager::update_state()//needs access to sensors! 
 {       
     int st;
     int ret;
-    switch(this->state)
+    switch(managerFSM.state())
     {
-        case tank_manager_state::STABLE:
+        case tank_manager_state::IDLE:
             /*this->close_valve();
             this->pumpOFF();NEED to check this!*/
-            if(this->time_in_state() >= std::chrono::minutes(SENSOR_TIMEOUT))
+            if(managerFSM.time_in_state() >= std::chrono::minutes(SENSOR_TIMEOUT))
             {
-                tankLink.sendStartCycle();
-                this->set_next_state(state);
-                std::cout<<"timeout! "<<std::endl;
-                //send CMD_START to WaterTank 
+                poll_tankFSM.set_state(poll_state::ASK);
+                update_tank_state_COM();//send straigth the message! 
 
+                managerFSM.set_state(tank_manager_state::CHECK_TANK);
             }
             break;
 
-        case tank_manager_state::CAPTURE:
-            //this->close_valve(); // for safety- still check if
-            //this->pumpOFF(); // for safety
+        case tank_manager_state::CHECK_TANK:
             
+            update_tank_state_COM();
+            if(current_tank_state == tank_state::STABLE)
+            {
+                tankLink.sendStartCycle();
+                managerFSM.set_state(tank_manager_state::WAIT);
+                poll_tankFSM.set_state(poll_state::ASK);
+                return;
+            }
+            if(managerFSM.time_in_state()>= std::chrono::minutes(FILL_TIMEOUT+DRAIN_TIMEOUT))
+            {
+                //timeout! report something isn't working! 
+                //let's hope this doesn't go here... 
+            }
+            break;
+        
+        case tank_manager_state::WAIT:
+            this->update_tank_state_COM();
+            if(current_tank_state== tank_state::STABLE)
+            {
+                sens_pid = this->sensor_fork();
+                managerFSM.set_state(tank_manager_state::CAPTURE);   
+                return;
+            }
+            if(managerFSM.time_in_state() >= std::chrono::minutes(FILL_TIMEOUT+DRAIN_TIMEOUT))    
+            {
+                //error! something with the tank...
+            }
+            break;
+            
+        case tank_manager_state::CAPTURE:        
             ret = waitpid(sens_pid,&st,WNOHANG);
             if(ret == 0) return;
             if (ret == -1) return;
-            set_next_state(tank_manager_state::STABLE);
-
+            managerFSM.set_state(tank_manager_state::IDLE);
+            poll_tankFSM.set_state(poll_state::IDLE);
             break;
     }
-}
-
-void WaterTank_Manager:: set_next_state(tank_manager_state s )
-{
-    if(s != state)
-    {
-        state = s;
-        state_entry = clk::now();
-    }   
-}
-
-clk::duration WaterTank_Manager::time_in_state() const {
-    return clk::now() - state_entry;
 }
 
 
@@ -135,15 +192,3 @@ pid_t WaterTank_Manager::sensor_fork()
     perror("execv sensor");
     _exit(127);
 }
-
-void WaterTank_Manager::set_setup_state(tank_setup s)
-{
-    if (s != setup_state) {
-        setup_state = s;
-        setup_entry = clk::now();
-    }
-}
-clk::duration WaterTank_Manager::time_in_setup() const {
-    return clk::now() - setup_entry;
-}
-
