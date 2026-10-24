@@ -85,6 +85,8 @@ int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork()
     
     CameraManager cam_manager;    
     WaterTank_Manager tank_manager;
+    
+    std::cout<<"in maiin"<<std::endl;
 
     tank_manager.setup("/dev/ttyACM0",B9600); //🚨 LOOK if port changes under wich sircunmstances!
     //cam_manager.setup();
