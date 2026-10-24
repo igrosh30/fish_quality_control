@@ -99,7 +99,8 @@ int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork()
         do
         {
             tank_manager.checkLink();
-        }while(!tank_manager.com_working);
+            std::cout<<"checking link!"<<std::endl;
+        }while(tank_manager.com_working);
         
         return 0;
     }

@@ -17,7 +17,6 @@
 void WaterTank_Manager::setup(const char* port,speed_t baud)
 {
 
-    this->com_working = false;
     if(serial.init(port,baud)) // se vai a baixo fudeu
     {
         std::cout<<"error initializing COM with sensors!";

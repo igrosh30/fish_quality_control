@@ -62,7 +62,7 @@ class WaterTank_Manager
         //-----------COM PARAMS--------
         const uint32_t COM_TIMEOUT = 2;//seconds
         const uint8_t MAX_TRIES = 10;
-        bool com_working;
+        bool com_working = false;
     
         pid_t sens_pid;
         tank_state current_tank_state = tank_state::CHECK_STABILITY;
