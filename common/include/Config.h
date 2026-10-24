@@ -21,12 +21,12 @@ enum class CamResult : u_int8_t
 //--------RAW TANK STATE------------------//
 enum class tank_state : uint8_t
 {
-    IDLE         = 0,
-    WAIT_CMD     = 1,
-    DRAIN_AT_TOP = 2,
-    DRAIN        = 3,
-    FILL         = 4,
-    STABLE       = 5,
+    CHECK_STABILITY = 0,
+    WAIT_CMD        = 1,
+    DRAIN_AT_TOP    = 2,
+    DRAIN           =  3,
+    FILL            = 4,
+    STABLE          = 5,
 };
 
 enum class PushResult : uint8_t
