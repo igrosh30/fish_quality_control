@@ -68,7 +68,7 @@ void ini_functions(int code, WaterTank_Manager& tank_manager, CameraManager& cam
     {
         do
         {
-            tank_manager.validateCOM();
+            tank_manager.checkLink();
 
         }while(!tank_manager.com_working);
     }
@@ -95,9 +95,9 @@ int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork()
     //phase1- setupCom:
     do
     {
-        tank_manager.validateCOM();
-    } while (tank_manager.setup_state != tank_setup::COM_OK || 
-             tank_manager.setup_state != tank_setup::COM_ERROR);
+        tank_manager.checkLink();
+    } while (tank_manager.comFSM.state() != com_check::COM_OK || 
+             tank_manager.comFSM.state() != com_check::COM_ERROR);
 
     
     // Phase 2: normal operation

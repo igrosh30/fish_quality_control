@@ -65,7 +65,7 @@ class WaterTank_Manager
         bool com_working;
     
         pid_t sens_pid;
-        tank_state current_tank_state = tank_state::IDLE;
+        tank_state current_tank_state = tank_state::CHECK_STABILITY;
         
         void setup(const char* port,speed_t baud);
         void checkLink();//checks wheter com is working! - the only func changing com_working!
