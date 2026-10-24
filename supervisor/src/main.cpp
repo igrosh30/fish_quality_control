@@ -87,12 +87,21 @@ int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork()
     WaterTank_Manager tank_manager;
 
     tank_manager.setup("/dev/ttyACM0",B9600); //🚨 LOOK if port changes under wich sircunmstances!
-    cam_manager.setup();
+    //cam_manager.setup();
     
-    //passed from the code sent!
-    ini_functions(code,tank_manager,cam_manager);
+    //passed from the code sent! ini_functions(code,tank_manager,cam_manager);
 
     //phase1- setupCom:
+    if(code == 99)//test gpios
+    {
+        do
+        {
+            tank_manager.checkLink();
+        }while(!tank_manager.com_working);
+        
+        return 0;
+    }
+
     do
     {
         tank_manager.checkLink();
