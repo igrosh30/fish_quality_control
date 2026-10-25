@@ -95,6 +95,7 @@ void WaterTank_Manager::update_tank_state_COM()
             }
             if (tankLink.poll_tank_state(current_tank_state)) {
                 // reply received — current_tank_state updated
+                cout<<"receivede state update"<<endl;
                 ask_tries = 0;
                 poll_tankFSM.set_state(poll_state::ASK);  //needs to be recursive! 
             }
