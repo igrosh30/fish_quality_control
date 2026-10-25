@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 
     char c = 0;
     while (c != 'c')
-        std::cin >> c; 
+         std::cin >> c; 
 
     do
     {
@@ -100,11 +100,21 @@ int main(int argc, char **argv)
              
 
     std::cout<<"link established!"<<std::endl;
+    std::cout<<"check tank state? - press y "<<std::endl;
+    char a = 0;
+    while (a != 'y')
+         std::cin >> a; 
     tank_manager.poll_tankFSM.set_state(poll_state::ASK);
-    std::cout<<"current tank state: before update("<< int(tank_manager.current_tank_state)<< std::endl;
+    tank_manager.update_tank_state_COM();
     tank_manager.update_tank_state_COM();
     std::cout<<"current tank state: after update("<< int(tank_manager.current_tank_state)<< std::endl;
-    tank_manager.update_tank_state_COM();
+
+    std::cout<<"what to check again? - press y "<<std::endl;
+    char b = 0;
+    while (b != 'y')
+         std::cin >> b;
+    std::cout<<"current tank state: after update("<< int(tank_manager.current_tank_state)<< std::endl;
+    
     return 0;
     
     // Phase 2: normal operation
