@@ -88,13 +88,9 @@ int main(int argc, char **argv)
     tank_manager.setup("/dev/ttyACM0",B9600); //🚨 LOOK if port changes under wich sircunmstances!
     //cam_manager.setup();
 
-    long i = 0;
-    while (i != 10000000000000000000)
-    {
-        i++;
-    }
-    
-
+    char c = 0;
+    while (c != 'c')
+        std::cin >> c; 
 
     do
     {
