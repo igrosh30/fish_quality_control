@@ -74,43 +74,34 @@ void ini_functions(int code, WaterTank_Manager& tank_manager, CameraManager& cam
     }
 }
 
-//we can pass the timeouts that we want! 
-int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork() 
+int main(int argc, char **argv)
 {
-    /*
-    ./supervisor/supervisor code sens_timeout 
-    */
+    //./supervisor/supervisor code sens_timeout 
+    
     uint8_t code = argc > 1 ? stoi(argv[1]) : 0; 
     //uint8_t sens_timeout = argc > 2 ? stoi(argv[2]) : 0; 
     
-    CameraManager cam_manager;    
+    //CameraManager cam_manager;
     WaterTank_Manager tank_manager;
-    
     std::cout<<"in maiin"<<std::endl;
 
     tank_manager.setup("/dev/ttyACM0",B9600); //🚨 LOOK if port changes under wich sircunmstances!
     //cam_manager.setup();
-    
-    //passed from the code sent! ini_functions(code,tank_manager,cam_manager);
-
-    //phase1- setupCom:
-    if(code == 99)//test gpios
-    {
-        do
-        {
-            tank_manager.checkLink();
-            std::cout<<"checking link!"<<std::endl;
-        }while(tank_manager.com_working);
-        
-        return 0;
-    }
 
     do
     {
         tank_manager.checkLink();
-    } while (tank_manager.comFSM.state() != com_check::COM_OK || 
-             tank_manager.comFSM.state() != com_check::COM_ERROR);
+    } while (tank_manager.comFSM.state() != com_check::COM_OK && 
+             tank_manager.comFSM.state() != com_check::COM_ERROR); 
+             
 
+    std::cout<<"link established!"<<std::endl;
+    tank_manager.poll_tankFSM.set_state(poll_state::ASK);
+    std::cout<<"current tank state: before update("<< int(tank_manager.current_tank_state)<< std::endl;
+    tank_manager.update_tank_state_COM();
+    std::cout<<"current tank state: after update("<< int(tank_manager.current_tank_state)<< std::endl;
+    tank_manager.update_tank_state_COM();
+    return 0;
     
     // Phase 2: normal operation
     while(1)
@@ -118,7 +109,7 @@ int main(int argc, char **argv)//code- 1 run cam.fork() code- 2 sensor.fork()
         //tank.read_sensors();
         tank_manager.update_tank_state_COM();
         tank_manager.update_state();
-        cam_manager.update();
+        //cam_manager.update();
     }
     //tank.release_gpio();
     return 0;

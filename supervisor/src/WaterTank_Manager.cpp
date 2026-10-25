@@ -64,6 +64,7 @@ void WaterTank_Manager::checkLink()
             {
                 ping_tries = 0;
                 this->com_working = true;
+                std::cout<<"Received PONG!"<<std::endl;
                 comFSM.set_state(com_check::COM_OK);
             }
             break;
