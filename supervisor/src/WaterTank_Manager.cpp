@@ -72,7 +72,7 @@ void WaterTank_Manager::update_state()//needs access to sensors!
             
             if(managerFSM.time_in_state() >= std::chrono::seconds(SENSOR_CAP_TIMEOUT))
             {
-                std::cout << "[MGR] capture due -> CHECK_TANK" << std::endl;
+                std::cout << "[TIMEOUT] -> CHECK_TANK" << std::endl;
                 managerFSM.set_state(tank_manager_state::CHECK_TANK);
             }
             break;
@@ -83,6 +83,7 @@ void WaterTank_Manager::update_state()//needs access to sensors!
             {
                 tankLink.sendStartCycle();
                 //we can add a bool to check if we received an ACK back  
+                std::cout << "[CHECK_TANK] -> WAITING TO CAPTURE SENS..." << std::endl;
                 managerFSM.set_state(tank_manager_state::WAIT_CYCLE_START);
                 return;
             }
@@ -93,7 +94,7 @@ void WaterTank_Manager::update_state()//needs access to sensors!
             }
             break;
         
-        case tank_manager_state::WAIT_CYCLE_START:
+        case tank_manager_state::WAIT_CYCLE_START: //⚠️NEED to check this... 
             if(current_tank_state != tank_state::READY)
             {
                 managerFSM.set_state(tank_manager_state::WAIT_CYCLE_DONE);
@@ -108,6 +109,7 @@ void WaterTank_Manager::update_state()//needs access to sensors!
             
             if(current_tank_state == tank_state::READY)
             {
+                std::cout << "[RECEIVED TANK READY STATE] -> let's capture" << std::endl;
                 sens_pid = this->sensor_fork();
                 managerFSM.set_state(tank_manager_state::CAPTURE);   
                 return;
