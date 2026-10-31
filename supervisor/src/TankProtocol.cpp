@@ -40,7 +40,7 @@ int16_t TankProtocol::sendPing()
     if(transport == nullptr)
         return -1;
     Frame f;
-    buildHeader(f, PING, 0, TANK_MCU);
+    buildHeader(f, PING_, 0, TANK_MCU);
     return transport->sendFrame(f);
 }
 
