@@ -19,14 +19,13 @@ enum class CamResult : u_int8_t
 };
 
 //--------RAW TANK STATE------------------//
+// ⚠️ MUST stay byte-identical with the Jetson's tank_state
 enum class tank_state : uint8_t
 {
-    CHECK_STABILITY = 0,
-    WAIT_CMD        = 1,
-    DRAIN_AT_TOP    = 2,
-    DRAIN           =  3,
-    FILL            = 4,
-    STABLE          = 5,
+    CHECK_STABILITY = 0,   // boot: read sensors, decide
+    FILL            = 2,   // filling to level (shared by both phases)
+    READY           = 3,   // levelled, idle, awaiting command
+    DRAIN           = 4,   // full-cycle drain
 };
 
 enum class PushResult : uint8_t

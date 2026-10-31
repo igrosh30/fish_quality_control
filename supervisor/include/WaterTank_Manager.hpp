@@ -15,24 +15,15 @@ enum class tank_manager_state
 {
     IDLE,
     CHECK_TANK,
-    WAIT,
+    WAIT_CYCLE_START,
+    WAIT_CYCLE_DONE,
     CAPTURE,//were we call fork()
 };
 
-enum class poll_state
-{
-    IDLE,       // not polling — waiting for someone to trigger
-    ASK,        // send the askTankState request
-    WAIT_STATE, // waiting for the reply
-    ERROR,      // MCU not responding after retries
-};
-
-enum class com_check
+enum class link_setp
 {
     IDLE,
-    WAIT_PONG,//were we call fork()
-    COM_OK,
-    COM_ERROR,
+    WAITING,
 };
 
 class WaterTank_Manager
@@ -50,28 +41,26 @@ class WaterTank_Manager
         bool waiting_response = false;
 
     public:
-        FSM<com_check> comFSM;
         FSM<tank_manager_state> managerFSM;
-        FSM<poll_state> poll_tankFSM;
+        FSM<link_setp> linkFSM;
 
+        const uint8_t SENSOR_CAP_TIMEOUT = 2; //minutes - change for testing
+        const uint32_t DRAIN_TIMEOUT = 1;//minutes
+        const uint32_t FILL_TIMEOUT = 1;//minutes
 
-        const uint8_t SENSOR_TIMEOUT = 31; //minutes 
-        const uint32_t DRAIN_TIMEOUT = 10;//minutes
-        const uint32_t FILL_TIMEOUT = 3;//minutes
-        
-        //-----------COM PARAMS--------
-        const uint32_t COM_TIMEOUT = 2;//seconds
-        const uint8_t MAX_TRIES = 10;
-        bool com_working = false;
+        //-----LINK TIMEOUTS--------
+        const uint32_t POLL_PERIOD  = 2;   // seconds between polls
+        const uint32_t REPLY_WINDOW = 2;   // seconds to wait for an answer
+        const uint32_t LINK_DEAD    = 10;  // seconds of silence = dead
+        clk::time_point last_reply;
     
         pid_t sens_pid;
         tank_state current_tank_state = tank_state::CHECK_STABILITY;
-        
+        tank_state temp_tank_state = tank_state::CHECK_STABILITY;
         void setup(const char* port,speed_t baud);
-        void checkLink();//checks wheter com is working! - the only func changing com_working!
         void update_state();
-
-        void update_tank_state_COM();
+        void update_link();//running com periodically
+        bool const isLinkActive();
 
         pid_t sensor_fork();
 };
