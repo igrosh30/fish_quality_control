@@ -39,7 +39,7 @@ int main(int argc, char **argv)
     {  
         tank_manager.update_link();
         tank_manager.update_state();//Internal State 
-        
+
         cam_manager.update();
     }
 

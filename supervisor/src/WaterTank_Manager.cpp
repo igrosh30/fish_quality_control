@@ -78,12 +78,12 @@ void WaterTank_Manager::update_state()//needs access to sensors!
             break;
 
         case tank_manager_state::CHECK_TANK:
-            
+            //Intermideate state waiting for tank to be stable before starting the cycle! 
             if(current_tank_state == tank_state::READY)
             {
                 tankLink.sendStartCycle();
                 //we can add a bool to check if we received an ACK back  
-                std::cout << "[CHECK_TANK] -> WAITING TO CAPTURE SENS..." << std::endl;
+                std::cout << "[CHECK_TANK] -> sendStartCycle going to WAIT..." << std::endl;
                 managerFSM.set_state(tank_manager_state::WAIT_CYCLE_START);
                 return;
             }
@@ -97,9 +97,10 @@ void WaterTank_Manager::update_state()//needs access to sensors!
         case tank_manager_state::WAIT_CYCLE_START: //⚠️NEED to check this... 
             if(current_tank_state != tank_state::READY)
             {
+                //means received the startCycle! 
                 managerFSM.set_state(tank_manager_state::WAIT_CYCLE_DONE);
             }
-            else if (managerFSM.time_in_state() >= std::chrono::seconds(5))
+            else if (managerFSM.time_in_state() >= std::chrono::seconds(POLL_PERIOD))//to resend the sendStart
             {
                 std::cout << "[MGR] !! START_CYCLE lost, retrying" << std::endl;
                 managerFSM.set_state(tank_manager_state::CHECK_TANK);
@@ -114,7 +115,7 @@ void WaterTank_Manager::update_state()//needs access to sensors!
                 managerFSM.set_state(tank_manager_state::CAPTURE);   
                 return;
             }
-            if(managerFSM.time_in_state() >= std::chrono::minutes(FILL_TIMEOUT+DRAIN_TIMEOUT))    
+            if(managerFSM.time_in_state() >= std::chrono::minutes(FILL_TIMEOUT+DRAIN_TIMEOUT+2))    
             {
                 //error! something with the tank...
             }
