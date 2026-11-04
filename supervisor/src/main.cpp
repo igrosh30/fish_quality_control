@@ -4,23 +4,23 @@
 #include "WaterTank_Manager.hpp"
 #include "CameraManager.hpp"
 
-void ini_functions(int code, WaterTank_Manager& tank_manager, CameraManager& cam_manager)
-{
-    if(code == 1)
-    {
-        cam_manager.camera_fork();
-        //could we check wheter the camFork worked?!- 
-    }
-    else if(code == 2)
-    {
-        tank_manager.sensor_fork();
-    }
-    else if(code == 3)
-    {
-        tank_manager.sensor_fork();
-        cam_manager.camera_fork();
-    }
-}
+// void ini_functions(int code, WaterTank_Manager& tank_manager, CameraManager& cam_manager)
+// {
+//     if(code == 1)
+//     {
+//         cam_manager.camera_fork();
+//         //could we check wheter the camFork worked?!- 
+//     }
+//     else if(code == 2)
+//     {
+//         tank_manager.sensor_fork();
+//     }
+//     else if(code == 3)
+//     {
+//         tank_manager.sensor_fork();
+//         cam_manager.camera_fork();
+//     }
+// }
 
 int main(int argc, char **argv)
 {

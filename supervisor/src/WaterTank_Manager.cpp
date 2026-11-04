@@ -70,7 +70,7 @@ void WaterTank_Manager::update_state()//needs access to sensors!
     {
         case tank_manager_state::IDLE:
             
-            if(managerFSM.time_in_state() >= std::chrono::seconds(SENSOR_CAP_TIMEOUT))
+            if(managerFSM.time_in_state() >= std::chrono::minutes(SENSOR_CAP_TIMEOUT))
             {
                 std::cout << "[TIMEOUT] -> CHECK_TANK" << std::endl;
                 managerFSM.set_state(tank_manager_state::CHECK_TANK);
