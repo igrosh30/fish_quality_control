@@ -44,8 +44,8 @@ class WaterTank_Manager
         FSM<tank_manager_state> managerFSM;
         FSM<link_setp> linkFSM;
 
-        const uint8_t SENSOR_CAP_TIMEOUT = 45; //minutes - change for testing
-        const uint32_t DRAIN_TIMEOUT = 3;//minutes
+        const uint8_t SENSOR_CAP_TIMEOUT = 30; //minutes - change for testing
+        const uint32_t DRAIN_TIMEOUT = 4;//minutes
         const uint32_t FILL_TIMEOUT = 3;//minutes
 
         //-----LINK TIMEOUTS--------
