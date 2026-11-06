@@ -18,15 +18,7 @@ enum class CamResult : u_int8_t
     KILLED        = 200,  // reserved: died by signal (supervisor sets this, see below)
 };
 
-//--------RAW TANK STATE------------------//
-// ⚠️ MUST stay byte-identical with the Jetson's tank_state
-enum class tank_state : uint8_t
-{
-    CHECK_STABILITY = 0,   // boot: read sensors, decide
-    FILL            = 2,   // filling to level (shared by both phases)
-    READY           = 3,   // levelled, idle, awaiting command
-    DRAIN           = 4,   // full-cycle drain
-};
+
 
 enum class PushResult : uint8_t
 {
