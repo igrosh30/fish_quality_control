@@ -3,6 +3,7 @@
 #include "WaterTank_Manager.hpp"
 #include "CameraManager.hpp"
 #include "StatusRegistry.hpp"
+#include "EventLog.hpp"
 
 // void ini_functions(int code, WaterTank_Manager& tank_manager, CameraManager& cam_manager)
 // {
@@ -33,6 +34,22 @@ int main(int argc, char **argv)
 
     tank_manager.setup("/dev/arduino",B9600);
     cam_manager.setup();
+
+    //---EVENT LOG: one JSON line per FSM transition / worker exit---
+    EventLog events;                 // must outlive the loop: the sinks hold &events
+    events.open(events_jsonl_path);
+
+    // one sink shared by every FSM; the FSM already says which one it is
+    auto sink = [&events](const char* fsm, const char* from, const char* to, const char* reason) {
+        events.transition(fsm, from, to, reason);
+    };
+    cam_manager.camFSM.set_sink(sink);
+    tank_manager.managerFSM.set_sink(sink);
+    // linkFSM deliberately has NO sink: it flips IDLE<->WAITING every 2 s by
+    // design (~43k lines/day of noise). Its health is in the snapshot already.
+
+    cam_manager.set_event_log(&events);
+    tank_manager.set_event_log(&events);
 
     //---STATUS SNAPSHOT (read by watch/display_debug, not by the FSMs)---
     StatusRegistry status;

@@ -8,15 +8,14 @@
 #include <algorithm>
 #include <chrono>
 #include "Config.h"
+#include "FSM.hpp"
 #include <cstring>
 #include <chrono>
 #include <signal.h>
 
 
-//--------TIMEOUT VAR------------------
-using clk = std::chrono::steady_clock;
-
 class StatusRegistry; // only referenced here; full definition in StatusRegistry.hpp
+class EventLog;       // only referenced here; full definition in EventLog.hpp
 
 enum class cam_manager_state
 {
@@ -52,15 +51,18 @@ class CameraManager
     bool push_finished;
 
     /*Cam val*/
-    cam_manager_state current_state;
     pid_t pid_cap;
     pid_t pid_push;
-    clk::time_point state_entry;
     int fd;
 
+    EventLog* elog = nullptr; // not set -> child exits are simply not logged
+
     public:
+    FSM<cam_manager_state> camFSM; // public like the tank's FSMs: main wires the event sink
+
     void setup();
-    
+    void set_event_log(EventLog* log) { elog = log; }
+
     pid_t camera_fork();
     pid_t push_fork(int num_captures);
     void update();
@@ -71,8 +73,6 @@ class CameraManager
 
     void register_status(StatusRegistry& r);//call once from main, after setup()
 
-    void set_next_state(cam_manager_state s);
-    clk::duration time_in_state() const;
     int count_pending();//aux method to count tot captures@ini
     bool is_nightTime() const;
 };

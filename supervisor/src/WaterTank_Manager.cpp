@@ -1,5 +1,6 @@
 #include "WaterTank_Manager.hpp"
 #include "StatusRegistry.hpp"
+#include "EventLog.hpp"
 
 
 //TODO's
@@ -25,8 +26,8 @@ void WaterTank_Manager::setup(const char* port,speed_t baud)
     }
     tankLink.init(&serial, NodeId::HOST);
     
-    managerFSM.init(tank_manager_state::IDLE);
-    linkFSM.init(link_setp::IDLE);
+    managerFSM.init(tank_manager_state::IDLE, "tank", to_string);
+    linkFSM.init(link_setp::IDLE, "link", to_string);
 
 }
 
@@ -39,7 +40,7 @@ void WaterTank_Manager::update_link()
             {
                 //ask
                 this->tankLink.askTankState();
-                linkFSM.set_state(link_setp::WAITING);
+                linkFSM.set_state(link_setp::WAITING, "poll period elapsed, state requested");
             }
             break;
         
@@ -47,12 +48,12 @@ void WaterTank_Manager::update_link()
             if(tankLink.poll_tank_state(this->current_tank_state))
             {
                 last_reply = clk::now();//received reply
-                linkFSM.set_state(link_setp::IDLE);
+                linkFSM.set_state(link_setp::IDLE, "reply received");
             }
             else if(linkFSM.time_in_state() >= std::chrono::seconds(REPLY_WINDOW))
             {
                 //Timeout... try again
-                linkFSM.set_state(link_setp::IDLE);
+                linkFSM.set_state(link_setp::IDLE, "reply window timed out");
             }
             break;
     }
@@ -74,7 +75,7 @@ void WaterTank_Manager::update_state()//needs access to sensors!
             if(managerFSM.time_in_state() >= std::chrono::minutes(SENSOR_CAP_TIMEOUT))
             {
                 std::cout << "[TIMEOUT] -> CHECK_TANK" << std::endl;
-                managerFSM.set_state(tank_manager_state::CHECK_TANK);
+                managerFSM.set_state(tank_manager_state::CHECK_TANK, "sensor cycle timeout 30min");
             }
             break;
 
@@ -83,27 +84,27 @@ void WaterTank_Manager::update_state()//needs access to sensors!
             {
                 tankLink.sendStartCycle(); 
                 std::cout << "[CHECK_TANK] -> sendStartCycle going to WAIT..." << std::endl;
-                managerFSM.set_state(tank_manager_state::WAIT_CYCLE_START);
+                managerFSM.set_state(tank_manager_state::WAIT_CYCLE_START, "tank READY, start cycle sent");
                 return;
             }
             if(managerFSM.time_in_state()>= std::chrono::minutes(FILL_TIMEOUT+DRAIN_TIMEOUT))
             {
                 std::cout << "[CHECK_TANK] -> tank wasn't ready... couldn't send start cycle" << std::endl;
                 std::cout << "[CHECK_TANK] -> [IDLE]" << std::endl;
-                managerFSM.set_state(tank_manager_state::IDLE);
+                managerFSM.set_state(tank_manager_state::IDLE, "tank not READY within drain+fill window");
             }
             break;
         
         case tank_manager_state::WAIT_CYCLE_START: //⚠️NEED to check this... 
             if(current_tank_state != tank_state::READY)
             {
-                //means received the startCycle! 
-                managerFSM.set_state(tank_manager_state::WAIT_CYCLE_DONE);
+                //means received the startCycle!
+                managerFSM.set_state(tank_manager_state::WAIT_CYCLE_DONE, "tank left READY, cycle started");
             }
             else if (managerFSM.time_in_state() >= std::chrono::seconds(POLL_PERIOD))//to resend the sendStart
             {
                 std::cout << "[MGR] !! START_CYCLE lost, retrying" << std::endl;
-                managerFSM.set_state(tank_manager_state::CHECK_TANK);
+                managerFSM.set_state(tank_manager_state::CHECK_TANK, "start cycle lost, retrying");
             }
             break;
         case tank_manager_state::WAIT_CYCLE_DONE:
@@ -112,7 +113,7 @@ void WaterTank_Manager::update_state()//needs access to sensors!
             {
                 std::cout << "[RECEIVED TANK READY STATE] -> let's capture" << std::endl;
                 sens_pid = this->sensor_fork();
-                managerFSM.set_state(tank_manager_state::CAPTURE);   
+                managerFSM.set_state(tank_manager_state::CAPTURE, "tank READY again, sensor script forked");
                 return;
             }
             if(managerFSM.time_in_state() >= std::chrono::minutes(FILL_TIMEOUT+DRAIN_TIMEOUT+2))    
@@ -121,11 +122,24 @@ void WaterTank_Manager::update_state()//needs access to sensors!
             }
             break;
             
-        case tank_manager_state::CAPTURE:        
+        case tank_manager_state::CAPTURE:
             ret = waitpid(sens_pid,&st,WNOHANG);
             if(ret == 0) return;
             if (ret == -1) return;
-            managerFSM.set_state(tank_manager_state::IDLE);
+            if(elog)
+            {
+                // the python script has no result enum: report its raw exit code
+                const char* status;
+                int code;
+                if (WIFEXITED(st))
+                {
+                    code = WEXITSTATUS(st);
+                    status = (code == 0) ? "SUCCESS" : (code == 127 ? "EXEC_FAILED" : "ERROR");
+                }
+                else { code = 200; status = "KILLED"; }
+                elog->child_exit("tank", sens_pid, status, code);
+            }
+            managerFSM.set_state(tank_manager_state::IDLE, "sensor script exited");
 
             break;
     }

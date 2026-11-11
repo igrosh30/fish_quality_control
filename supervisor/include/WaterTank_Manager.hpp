@@ -29,6 +29,7 @@ enum class link_setp
 };
 
 class StatusRegistry; // only referenced here; full definition in StatusRegistry.hpp
+class EventLog;       // only referenced here; full definition in EventLog.hpp
 
 inline const char* to_string(tank_manager_state s)
 {
@@ -68,6 +69,8 @@ class WaterTank_Manager
         
         bool waiting_response = false;
 
+        EventLog* elog = nullptr; // not set -> child exits are simply not logged
+
     public:
         FSM<tank_manager_state> managerFSM;
         FSM<link_setp> linkFSM;
@@ -86,6 +89,7 @@ class WaterTank_Manager
         tank_state current_tank_state = tank_state::CHECK_STABILITY;
         tank_state temp_tank_state = tank_state::CHECK_STABILITY;
         void setup(const char* port,speed_t baud);
+        void set_event_log(EventLog* log) { elog = log; }
         void register_status(StatusRegistry& r);//call once from main, after setup()
         void update_state();
         void update_link();//running com periodically

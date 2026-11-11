@@ -94,6 +94,9 @@ static const char* push_result_str(uint8_t code)
 // /dev/shm is tmpfs: rewritten every second with zero flash wear.
 const char* const status_json_path = "/dev/shm/fish_status.json";
 
+//FSM transition / worker-exit event log (JSON lines, rotated above ~5 MB).
+const char* const events_jsonl_path = "/home/ciimar/fish_quality_control/data/events.jsonl";
+
 //Camera Parameters:
 const int num_def_cap = 2;
 /*Where we will store image_captures:*/
