@@ -28,16 +28,6 @@ enum class link_setp
     WAITING,
 };
 
-//--------RAW TANK STATE------------------//
-// ⚠️ MUST stay byte-identical with the Jetson's tank_state
-enum class tank_state : uint8_t
-{
-    CHECK_STABILITY = 0,   // boot: read sensors, decide
-    DRAIN_LEFTOVERS = 1,
-    FILL            = 2,   // filling to level (shared by both phases)
-    READY           = 3,   // levelled, idle, awaiting command
-    DRAIN           = 4,   // full-cycle drain
-};
 
 class WaterTank_Manager
 {
