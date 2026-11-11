@@ -2,6 +2,7 @@
 
 #include "WaterTank_Manager.hpp"
 #include "CameraManager.hpp"
+#include "StatusRegistry.hpp"
 
 // void ini_functions(int code, WaterTank_Manager& tank_manager, CameraManager& cam_manager)
 // {
@@ -32,14 +33,43 @@ int main(int argc, char **argv)
 
     tank_manager.setup("/dev/arduino",B9600);
     cam_manager.setup();
-             
+
+    //---STATUS SNAPSHOT (read by watch/display_debug, not by the FSMs)---
+    StatusRegistry status;
+    const clk::time_point start = clk::now();
+    long seq = 0; // lives as long as main(), so capturing it by reference is safe
+
+    status.add("sup.ts_unix", [] { return std::time(nullptr); });
+    status.add("sup.ts_local", [] {
+        std::time_t now = std::time(nullptr);
+        char buf[32];
+        std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+        return std::string(buf);
+    });
+    status.add("sup.seq", [&seq] { return ++seq; });
+    status.add("sup.uptime_s", [start] {
+        return std::chrono::duration_cast<std::chrono::seconds>(clk::now() - start).count();
+    });
+    status.add("sup.pid", [] { return getpid(); });
+
+    tank_manager.register_status(status);
+    cam_manager.register_status(status);
+
+    clk::time_point next_publish = clk::now();
+
     // Phase 2: normal operation
     while(1)
-    {  
+    {
         tank_manager.update_link();
-        tank_manager.update_state();//Internal State 
+        tank_manager.update_state();//Internal State
 
         cam_manager.update();
+
+        if(clk::now() >= next_publish) // 1 Hz gate; never delays the loop itself
+        {
+            status.publish(status_json_path);
+            next_publish = clk::now() + std::chrono::seconds(1);
+        }
     }
 
     return 0;

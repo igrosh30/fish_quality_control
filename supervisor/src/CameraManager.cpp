@@ -1,4 +1,5 @@
 #include "CameraManager.hpp"
+#include "StatusRegistry.hpp"
 
 static const char* cam_result_str(uint8_t code);
 
@@ -260,6 +261,31 @@ int CameraManager:: count_pending()//set's tot_captures
     return count;
 }
 
+
+void CameraManager::register_status(StatusRegistry& r)
+{
+    // lambdas capture `this`: private members stay private,
+    // and every value is read fresh at publish time
+    r.add("cam.state", [this] { return to_string(current_state); });
+
+    r.add("cam.time_in_state_s", [this] {
+        return std::chrono::duration_cast<std::chrono::seconds>(time_in_state()).count();
+    });
+
+    r.add("cam.next_trigger_in_s", [this]() -> nlohmann::json {
+        if (current_state != cam_manager_state::IDLE)
+            return nullptr;   // countdown only means something in IDLE
+        auto left = std::chrono::minutes(cam_timeout) - time_in_state();
+        auto s = std::chrono::duration_cast<std::chrono::seconds>(left).count();
+        return s > 0 ? s : 0;
+    });
+
+    r.add("cam.is_night",      [this] { return is_nightTime(); });
+    r.add("cam.captures",      [this] { return captures; });
+    r.add("cam.push_finished", [this] { return push_finished; });
+    r.add("cam.pid_cap",       [this] { return pid_cap; });
+    r.add("cam.pid_push",      [this] { return pid_push; });
+}
 
 //---FSM HELPERS---//
 void CameraManager::set_next_state(cam_manager_state s) {            // single choke point for transitions

@@ -29,6 +29,21 @@ enum class tank_state : uint8_t
     DRAIN           = 4,   // full-cycle drain
 };
 
+// inline: one shared definition across translation units, no "defined but
+// not used" warning (the static helpers above get one per file).
+inline const char* to_string(tank_state s)
+{
+    switch (s)
+    {
+        case tank_state::CHECK_STABILITY: return "CHECK_STABILITY";
+        case tank_state::DRAIN_LEFTOVERS: return "DRAIN_LEFTOVERS";
+        case tank_state::FILL:            return "FILL";
+        case tank_state::READY:           return "READY";
+        case tank_state::DRAIN:           return "DRAIN";
+        default:                          return "UNKNOWN";
+    }
+}
+
 enum class PushResult : uint8_t
 {
     SUCCESS             =0,
@@ -74,6 +89,10 @@ static const char* push_result_str(uint8_t code)
         default:                            return "UNKNOWN";
     }
 }
+
+//Live status snapshot written by the supervisor (1 Hz).
+// /dev/shm is tmpfs: rewritten every second with zero flash wear.
+const char* const status_json_path = "/dev/shm/fish_status.json";
 
 //Camera Parameters:
 const int num_def_cap = 2;

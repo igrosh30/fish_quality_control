@@ -1,4 +1,5 @@
 #include "WaterTank_Manager.hpp"
+#include "StatusRegistry.hpp"
 
 
 //TODO's
@@ -130,6 +131,38 @@ void WaterTank_Manager::update_state()//needs access to sensors!
     }
 }
 
+
+void WaterTank_Manager::register_status(StatusRegistry& r)
+{
+    using std::chrono::duration_cast;
+    using std::chrono::seconds;
+
+    r.add("tank.state", [this] { return to_string(managerFSM.state()); });
+
+    r.add("tank.time_in_state_s", [this] {
+        return duration_cast<seconds>(managerFSM.time_in_state()).count();
+    });
+
+    r.add("tank.next_cycle_in_s", [this]() -> nlohmann::json {
+        if (managerFSM.state() != tank_manager_state::IDLE)
+            return nullptr;   // countdown only means something in IDLE
+        auto left = std::chrono::minutes(SENSOR_CAP_TIMEOUT) - managerFSM.time_in_state();
+        auto s = duration_cast<seconds>(left).count();
+        return s > 0 ? s : 0;
+    });
+
+    r.add("tank.link_state",  [this] { return to_string(linkFSM.state()); });
+    r.add("tank.link_active", [this] { return isLinkActive(); });
+
+    r.add("tank.last_reply_age_s", [this]() -> nlohmann::json {
+        if (last_reply == clk::time_point{})
+            return nullptr;   // still at its default value: never got a reply
+        return duration_cast<seconds>(clk::now() - last_reply).count();
+    });
+
+    r.add("tank.tank_state", [this] { return to_string(current_tank_state); });
+    r.add("tank.sens_pid",   [this] { return sens_pid; });
+}
 
 pid_t WaterTank_Manager::sensor_fork()
 {

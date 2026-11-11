@@ -16,6 +16,8 @@
 //--------TIMEOUT VAR------------------
 using clk = std::chrono::steady_clock;
 
+class StatusRegistry; // only referenced here; full definition in StatusRegistry.hpp
+
 enum class cam_manager_state
 {
     IDLE,
@@ -23,6 +25,18 @@ enum class cam_manager_state
     PUSH_IMG,
     PUSH_KILLING
 };
+
+inline const char* to_string(cam_manager_state s)
+{
+    switch (s)
+    {
+        case cam_manager_state::IDLE:         return "IDLE";
+        case cam_manager_state::CAPTURE:      return "CAPTURE";
+        case cam_manager_state::PUSH_IMG:     return "PUSH_IMG";
+        case cam_manager_state::PUSH_KILLING: return "PUSH_KILLING";
+        default:                              return "UNKNOWN";
+    }
+}
 
 
 class CameraManager
@@ -54,6 +68,8 @@ class CameraManager
     void write_logMsg(const char* msg, int fd);
     void process_return_captureFork(int st);
     void process_return_pushFork(int st);
+
+    void register_status(StatusRegistry& r);//call once from main, after setup()
 
     void set_next_state(cam_manager_state s);
     clk::duration time_in_state() const;

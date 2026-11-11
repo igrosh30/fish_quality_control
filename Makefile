@@ -39,6 +39,7 @@ SV_SRC    := supervisor/src/main.cpp \
              supervisor/src/CameraManager.cpp \
              supervisor/src/WaterTank_Manager.cpp \
              supervisor/src/TankProtocol.cpp \
+             supervisor/src/StatusRegistry.cpp \
              lib/COM_protocol/core/FrameParser.cpp \
              lib/COM_protocol/linux/LinuxSerialTransport.cpp
 SV_INC    := -Isupervisor/include \

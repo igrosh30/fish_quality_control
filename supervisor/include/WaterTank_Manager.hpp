@@ -28,6 +28,31 @@ enum class link_setp
     WAITING,
 };
 
+class StatusRegistry; // only referenced here; full definition in StatusRegistry.hpp
+
+inline const char* to_string(tank_manager_state s)
+{
+    switch (s)
+    {
+        case tank_manager_state::IDLE:            return "IDLE";
+        case tank_manager_state::CHECK_TANK:      return "CHECK_TANK";
+        case tank_manager_state::WAIT_CYCLE_START: return "WAIT_CYCLE_START";
+        case tank_manager_state::WAIT_CYCLE_DONE: return "WAIT_CYCLE_DONE";
+        case tank_manager_state::CAPTURE:         return "CAPTURE";
+        default:                                  return "UNKNOWN";
+    }
+}
+
+inline const char* to_string(link_setp s)
+{
+    switch (s)
+    {
+        case link_setp::IDLE:    return "IDLE";
+        case link_setp::WAITING: return "WAITING";
+        default:                 return "UNKNOWN";
+    }
+}
+
 
 class WaterTank_Manager
 {
@@ -57,10 +82,11 @@ class WaterTank_Manager
         const uint32_t LINK_DEAD    = 10;  // seconds of silence = dead
         clk::time_point last_reply;
     
-        pid_t sens_pid;
+        pid_t sens_pid = -1; // initialized: register_status() reads it before the first fork
         tank_state current_tank_state = tank_state::CHECK_STABILITY;
         tank_state temp_tank_state = tank_state::CHECK_STABILITY;
         void setup(const char* port,speed_t baud);
+        void register_status(StatusRegistry& r);//call once from main, after setup()
         void update_state();
         void update_link();//running com periodically
         bool const isLinkActive();
