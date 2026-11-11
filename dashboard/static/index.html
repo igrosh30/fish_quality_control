@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fish Supervisor</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --card: #ffffff; --text: #1c2330; --muted: #67718a;
+    --line: #dde1ea; --ok: #1d8a4e; --warn: #b7791f; --bad: #c0392b;
+    --accent: #2457c5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141821; --card: #1d2330; --text: #e8ecf4; --muted: #94a0b8;
+      --line: #313a4d; --ok: #3fb577; --warn: #d9a441; --bad: #e06555;
+      --accent: #6c9bff;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--text);
+         font: 14px/1.45 system-ui, sans-serif; }
+  h1 { font-size: 18px; margin: 0 0 12px; }
+  h1 small { color: var(--muted); font-weight: normal; margin-left: 10px; }
+
+  .banner { display: none; padding: 10px 14px; border-radius: 8px; margin: 0 0 12px;
+            background: var(--bad); color: #fff; font-weight: 600; }
+  .banner.show { display: block; }
+
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+          padding: 12px 14px; }
+  .card h2 { font-size: 13px; margin: 0 0 8px; color: var(--muted);
+             text-transform: uppercase; letter-spacing: .05em; }
+  .card.stuck { border-color: var(--bad); box-shadow: 0 0 0 1px var(--bad); }
+  .stuck-tag { display: none; color: var(--bad); font-weight: 700; }
+  .card.stuck .stuck-tag { display: inline; }
+
+  .state { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .kv { display: flex; justify-content: space-between; gap: 10px; padding: 2px 0; }
+  .kv span:first-child { color: var(--muted); }
+  .good { color: var(--ok); font-weight: 600; }
+  .bad  { color: var(--bad); font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 14px;
+          background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+          overflow: hidden; }
+  caption { text-align: left; font-size: 13px; color: var(--muted);
+            text-transform: uppercase; letter-spacing: .05em; padding: 8px 2px; }
+  th, td { text-align: left; padding: 6px 10px; border-top: 1px solid var(--line);
+           font-variant-numeric: tabular-nums; }
+  th { color: var(--muted); font-weight: 600; border-top: none; }
+  td.reason { color: var(--muted); }
+  td .arrow { color: var(--accent); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<h1>Fish Supervisor <small id="meta">waiting for data…</small></h1>
+
+<div id="banner-server" class="banner">dashboard server unreachable</div>
+<div id="banner-pump"   class="banner">pump not reporting (no POST from the Jetson)</div>
+<div id="banner-sup"    class="banner">supervisor not reporting</div>
+
+<div class="grid">
+  <div class="card" id="card-sup">
+    <h2>supervisor <span class="stuck-tag">possibly stuck</span></h2>
+    <div class="state" id="sup-up">–</div>
+    <div class="kv"><span>pid</span><span id="sup-pid">–</span></div>
+    <div class="kv"><span>seq</span><span id="sup-seq">–</span></div>
+    <div class="kv"><span>written</span><span id="sup-ts">–</span></div>
+    <div class="kv"><span>snapshot age</span><span id="sup-age">–</span></div>
+  </div>
+
+  <div class="card" id="card-cam">
+    <h2>camera FSM <span class="stuck-tag">possibly stuck</span></h2>
+    <div class="state" id="cam-state">–</div>
+    <div class="kv"><span>in state</span><span id="cam-tis">–</span></div>
+    <div class="kv"><span>next trigger</span><span id="cam-next">–</span></div>
+    <div class="kv"><span>night</span><span id="cam-night">–</span></div>
+    <div class="kv"><span>captures pending</span><span id="cam-captures">–</span></div>
+    <div class="kv"><span>push finished</span><span id="cam-pushfin">–</span></div>
+    <div class="kv"><span>pid capture / push</span><span id="cam-pids">–</span></div>
+  </div>
+
+  <div class="card" id="card-tank">
+    <h2>tank FSM <span class="stuck-tag">possibly stuck</span></h2>
+    <div class="state" id="tank-state">–</div>
+    <div class="kv"><span>in state</span><span id="tank-tis">–</span></div>
+    <div class="kv"><span>next cycle</span><span id="tank-next">–</span></div>
+    <div class="kv"><span>arduino tank state</span><span id="tank-tankstate">–</span></div>
+    <div class="kv"><span>sensor pid</span><span id="tank-senspid">–</span></div>
+  </div>
+
+  <div class="card" id="card-link">
+    <h2>arduino link</h2>
+    <div class="state" id="link-active">–</div>
+    <div class="kv"><span>link FSM</span><span id="link-state">–</span></div>
+    <div class="kv"><span>last reply</span><span id="link-age">–</span></div>
+  </div>
+</div>
+
+<table>
+  <caption>events (newest first)</caption>
+  <thead><tr><th>time</th><th>fsm</th><th>what</th><th>detail</th></tr></thead>
+  <tbody id="events"></tbody>
+</table>
+
+<script>
+"use strict";
+
+// How long each state may reasonably last (supervisor constants + ~20% slack).
+// Fresh snapshot but time_in_state beyond this => the FSM is "possibly stuck".
+// A state not listed here is never flagged.
+const EXPECTED_MAX_S = {
+  cam:  { IDLE: 4320, CAPTURE: 600, PUSH_IMG: 2160, PUSH_KILLING: 60 },
+  tank: { IDLE: 2160, CHECK_TANK: 505, WAIT_CYCLE_START: 10,
+          WAIT_CYCLE_DONE: 650, CAPTURE: 600 },
+};
+
+const STALE_S   = 5;     // banner threshold (task spec)
+const MAX_ROWS  = 200;   // events kept in the table
+let lastEventId = 0;
+
+const $ = id => document.getElementById(id);
+
+function fmtDur(s) {
+  if (s === null || s === undefined) return "–";
+  s = Math.round(s);
+  if (s < 60) return s + "s";
+  if (s < 3600) return Math.floor(s / 60) + "m " + (s % 60) + "s";
+  return Math.floor(s / 3600) + "h " + Math.floor((s % 3600) / 60) + "m";
+}
+
+function setStuck(cardId, fsm, state, tis, fresh) {
+  const limit = (EXPECTED_MAX_S[fsm] || {})[state];
+  const stuck = fresh && limit !== undefined && tis > limit;
+  $(cardId).classList.toggle("stuck", stuck);
+}
+
+function renderStatus(d) {
+  const st = d.status;
+  const supStale  = d.snapshot_age_s === null || d.snapshot_age_s > STALE_S;
+  const pumpStale = d.pump_age_s     === null || d.pump_age_s     > STALE_S;
+  $("banner-sup").classList.toggle("show", supStale && !pumpStale);
+  $("banner-pump").classList.toggle("show", pumpStale);
+  const fresh = !supStale && !pumpStale;
+
+  if (!st) { $("meta").textContent = "no snapshot received yet"; return; }
+
+  $("meta").textContent = "snapshot #" + st["sup.seq"];
+  $("sup-up").textContent  = "up " + fmtDur(st["sup.uptime_s"]);
+  $("sup-pid").textContent = st["sup.pid"];
+  $("sup-seq").textContent = st["sup.seq"];
+  $("sup-ts").textContent  = st["sup.ts_local"];
+  $("sup-age").textContent = fmtDur(d.snapshot_age_s);
+  $("sup-age").className   = supStale ? "bad" : "good";
+
+  $("cam-state").textContent    = st["cam.state"];
+  $("cam-tis").textContent      = fmtDur(st["cam.time_in_state_s"]);
+  $("cam-next").textContent     = st["cam.next_trigger_in_s"] === null
+                                  ? "–" : "in " + fmtDur(st["cam.next_trigger_in_s"]);
+  $("cam-night").textContent    = st["cam.is_night"] ? "yes" : "no";
+  $("cam-captures").textContent = st["cam.captures"];
+  $("cam-pushfin").textContent  = st["cam.push_finished"] ? "yes" : "no";
+  $("cam-pids").textContent     = st["cam.pid_cap"] + " / " + st["cam.pid_push"];
+  setStuck("card-cam", "cam", st["cam.state"], st["cam.time_in_state_s"], fresh);
+
+  $("tank-state").textContent     = st["tank.state"];
+  $("tank-tis").textContent       = fmtDur(st["tank.time_in_state_s"]);
+  $("tank-next").textContent      = st["tank.next_cycle_in_s"] === null
+                                    ? "–" : "in " + fmtDur(st["tank.next_cycle_in_s"]);
+  $("tank-tankstate").textContent = st["tank.tank_state"];
+  $("tank-senspid").textContent   = st["tank.sens_pid"];
+  setStuck("card-tank", "tank", st["tank.state"], st["tank.time_in_state_s"], fresh);
+
+  const active = st["tank.link_active"];
+  $("link-active").textContent = active ? "ACTIVE" : "DEAD";
+  $("link-active").className   = "state " + (active ? "good" : "bad");
+  $("link-state").textContent  = st["tank.link_state"];
+  $("link-age").textContent    = st["tank.last_reply_age_s"] === null
+                                 ? "never" : fmtDur(st["tank.last_reply_age_s"]) + " ago";
+}
+
+function renderEvents(list) {
+  const tbody = $("events");
+  for (const e of list) {           // list is oldest->newest; prepend each
+    const ev = e.data;
+    const tr = document.createElement("tr");
+    const when = ev.ts ? new Date(ev.ts * 1000).toLocaleTimeString() : "–";
+    let what, detail;
+    if (ev.event === "child_exit") {
+      what = "child exit (pid " + ev.pid + ")";
+      detail = ev.status + " (code " + ev.code + ")";
+    } else {
+      what = ev.from + " ";
+      detail = ev.reason || "";
+    }
+    tr.innerHTML = "<td></td><td></td><td></td><td class='reason'></td>";
+    tr.children[0].textContent = when;
+    tr.children[1].textContent = ev.fsm;
+    if (ev.event === "child_exit") {
+      tr.children[2].textContent = what;
+    } else {
+      tr.children[2].innerHTML = "<span></span> <span class='arrow'>→</span> <span></span>";
+      tr.children[2].children[0].textContent = ev.from;
+      tr.children[2].children[2].textContent = ev.to;
+    }
+    tr.children[3].textContent = detail;
+    tbody.prepend(tr);
+  }
+  while (tbody.children.length > MAX_ROWS) tbody.lastChild.remove();
+}
+
+async function poll() {
+  try {
+    const st = await (await fetch("/status")).json();
+    const ev = await (await fetch("/events?since=" + lastEventId)).json();
+    $("banner-server").classList.remove("show");
+    renderStatus(st);
+    renderEvents(ev.events);
+    if (ev.last_id > lastEventId) lastEventId = ev.last_id;
+  } catch (err) {
+    $("banner-server").classList.add("show");
+  }
+}
+
+poll();
+setInterval(poll, 1000);
+</script>
+</body>
+</html>
