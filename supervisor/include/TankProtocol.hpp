@@ -3,6 +3,7 @@
 #include "LinuxSerialTransport.hpp"
 #include "Config.h"
 #include <string.h>
+#include "WaterTank_Manager.hpp"
 
 class TankProtocol {
     

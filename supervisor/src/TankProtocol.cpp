@@ -1,5 +1,4 @@
 #include "TankProtocol.hpp"
-#include "WaterTank_Manager.hpp"
 
 void TankProtocol::init(ITransport* t, NodeId id)
 {
