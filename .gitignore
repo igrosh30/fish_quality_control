@@ -8,6 +8,7 @@ image_cap
 image_capture/image_capture
 image_capture/src/gen_matrix
 supervisor/supervisor
+push_captures/push_captures
 
 # python
 env/
