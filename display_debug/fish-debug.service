@@ -1,0 +1,28 @@
+# fish-debug.service - status/event pump for the dashboard.
+# Deliberately independent of fish.service: if the supervisor is down the pump
+# keeps running (and the dashboard shows the staleness banner), and vice versa.
+#
+# Install (as root, after editing the URL below):
+#   cp fish-debug.service /etc/systemd/system/
+#   systemctl daemon-reload
+#   systemctl enable --now fish-debug
+# Logs:  journalctl -u fish-debug -f
+
+[Unit]
+Description=Fish dashboard pump (snapshot + events -> HTTP POST)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# EDIT the URL: where the Phase 4 dashboard server listens.
+ExecStart=/home/ciimar/fish_quality_control/env/bin/python3 \
+    /home/ciimar/fish_quality_control/display_debug/display_debug.py \
+    http://127.0.0.1:5000/ingest
+User=ciimar
+# the pump never exits on its own; if it somehow dies, come back - but gently,
+# so a repeating failure cannot become a tight crash loop
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
