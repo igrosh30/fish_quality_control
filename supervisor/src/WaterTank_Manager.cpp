@@ -19,7 +19,7 @@ void WaterTank_Manager::setup(const char* port,speed_t baud)
 
     if(serial.init(port,baud))// se vai a baixo fudeu
     {
-        std::cout<<"error initializing COM with sensors!";
+        std::cout<<"error initializing COM with tank_sensors!";
         return;
     }
     tankLink.init(&serial, NodeId::HOST);

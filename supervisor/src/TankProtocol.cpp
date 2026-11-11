@@ -30,7 +30,7 @@ void TankProtocol::buildHeader(Frame& f, MsgType type, uint8_t len, NodeId dest)
 
 int16_t TankProtocol::send(Frame &f,uint8_t expectedType ,uint32_t timeout, uint8_t n_tries)
 {
-    transport->sendFrame(f);
+    return transport->sendFrame(f);
 }
 
 int16_t TankProtocol::sendPing()

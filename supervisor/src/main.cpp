@@ -1,5 +1,4 @@
-//SUPERVISOR CODE
-// a multiprocessing environment.
+//SUPERVISOR CODE- a multiprocessing environment.
 
 #include "WaterTank_Manager.hpp"
 #include "CameraManager.hpp"
@@ -31,7 +30,7 @@ int main(int argc, char **argv)
     WaterTank_Manager tank_manager;
     std::cout<<"in maiin"<<std::endl;
 
-    tank_manager.setup("/dev/ttyACM0",B9600);//🚨 LOOK if port changes under wich sircunmstances!
+    tank_manager.setup("/dev/arduino",B9600);
     cam_manager.setup();
              
     // Phase 2: normal operation
