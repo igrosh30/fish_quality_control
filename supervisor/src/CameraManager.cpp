@@ -21,7 +21,7 @@ void CameraManager::update()
         int st;
         int ret;
         case cam_manager_state::IDLE:            
-            if(time_in_state() >= std::chrono::minutes(cam_timeout)) //TIMEOUT
+            if(time_in_state() >= std::chrono::minutes(cam_timeout)) //TIMEOUT minutes
             {                
                 if(is_nightTime())
                 {
@@ -69,7 +69,6 @@ void CameraManager::update()
                 ret =waitpid(this->pid_push,&st,WNOHANG);
                 if(ret==0)//pus_image haven't finished
                 {
-
                     kill(this->pid_push, SIGTERM);
                     this->set_next_state(cam_manager_state::PUSH_KILLING);
                     this->write_logMsg("PUSH_KILL STATE... ",this->fd);
@@ -278,5 +277,5 @@ bool CameraManager::is_nightTime() const
 {
     time_t now = time(nullptr);
     struct tm datetime = *localtime(&now);
-    return datetime.tm_hour >= 21 || datetime.tm_hour <= 7; //21h to 7h: Night Time
+    return datetime.tm_hour >= 18 || datetime.tm_hour <= 7; //21h to 7h: Night Time
 }

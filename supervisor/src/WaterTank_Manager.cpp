@@ -26,7 +26,7 @@ void WaterTank_Manager::setup(const char* port,speed_t baud)
     
     managerFSM.init(tank_manager_state::IDLE);
     linkFSM.init(link_setp::IDLE);
-    
+
 }
 
 void WaterTank_Manager::update_link()
@@ -53,7 +53,7 @@ void WaterTank_Manager::update_link()
                 //Timeout... try again
                 linkFSM.set_state(link_setp::IDLE);
             }
-
+            break;
     }
 }
 bool const WaterTank_Manager::isLinkActive() 
